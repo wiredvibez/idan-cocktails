@@ -260,22 +260,68 @@ body{
   padding:3rem clamp(1.5rem,4vw,4rem) 6rem;
 }
 .section-header{
-  margin-bottom:2rem;
-  padding-bottom:1rem;
-  border-bottom:1px solid rgba(200,169,110,0.1);
+  margin-bottom:1.75rem;
+  padding:1.1rem 1.25rem 1.15rem;
+  border-radius:var(--radius-lg);
+  border:1px solid rgba(200,169,110,0.14);
+  border-inline-start-width:3px;
+  border-inline-start-color:var(--gold);
+  background:
+    linear-gradient(120deg,rgba(200,169,110,0.09) 0%,transparent 42%),
+    linear-gradient(180deg,rgba(24,24,27,0.9) 0%,rgba(9,9,11,0.35) 100%);
+  box-shadow:0 1px 0 rgba(255,255,255,0.04) inset,0 12px 40px -28px rgba(0,0,0,0.5);
+  position:relative;
+  overflow:hidden;
+}
+.section-header::after{
+  content:'';
+  position:absolute;
+  inset-inline-end:-20%;
+  top:-60%;
+  width:55%;
+  height:200%;
+  background:radial-gradient(ellipse at center,rgba(200,169,110,0.07),transparent 70%);
+  pointer-events:none;
+}
+.section-header-inner{
+  position:relative;
+  z-index:1;
+  display:flex;
+  flex-wrap:wrap;
+  align-items:center;
+  justify-content:space-between;
+  gap:0.65rem 1.25rem;
 }
 .section-title{
   font-family:var(--font-display);
-  font-size:1.5rem;
+  font-size:clamp(1.35rem,3.8vw,1.65rem);
   font-weight:700;
   color:var(--zinc-100);
-  letter-spacing:-0.02em;
+  letter-spacing:-0.03em;
+  line-height:1.15;
+  margin:0;
 }
 .section-title span{color:var(--gold)}
 .section-count{
-  font-size:0.8rem;
-  color:var(--zinc-600);
-  margin-top:0.25rem;
+  display:inline-flex;
+  align-items:center;
+  gap:0.4rem;
+  padding:0.35rem 0.75rem;
+  border-radius:100px;
+  font-size:0.72rem;
+  font-weight:500;
+  letter-spacing:0.04em;
+  color:var(--zinc-400);
+  background:rgba(200,169,110,0.08);
+  border:1px solid rgba(200,169,110,0.18);
+  white-space:nowrap;
+}
+.section-count-num{
+  font-family:var(--font-display);
+  font-size:0.95rem;
+  font-weight:700;
+  font-variant-numeric:tabular-nums;
+  color:var(--gold);
 }
 .cocktail-grid{
   display:grid;
@@ -954,10 +1000,16 @@ function renderCocktails() {
     const section = document.createElement("section");
     section.setAttribute('role', 'region');
     section.setAttribute('aria-label', categories[cat].name);
+    const n = groups[cat].length;
     section.innerHTML = `
-      <div class="section-header">
-        <h2 class="section-title">${categories[cat].name}</h2>
-        <div class="section-count">${groups[cat].length} קוקטיילים</div>
+      <div class="section-header" dir="rtl">
+        <div class="section-header-inner">
+          <h2 class="section-title">${categories[cat].name}</h2>
+          <div class="section-count" aria-label="${n} קוקטיילים בקטגוריה">
+            <span class="section-count-num">${n}</span>
+            <span>קוקטיילים</span>
+          </div>
+        </div>
       </div>
       <div class="cocktail-grid" id="grid-${cat}"></div>
     `;
