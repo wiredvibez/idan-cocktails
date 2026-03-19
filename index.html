@@ -1,0 +1,1085 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cocktails Wiki</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --gold:#C8A96E;
+  --gold-dim:#A08454;
+  --gold-glow:rgba(200,169,110,0.15);
+  --zinc-950:#09090b;
+  --zinc-900:#18181b;
+  --zinc-800:#27272a;
+  --zinc-700:#3f3f46;
+  --zinc-600:#52525b;
+  --zinc-500:#71717a;
+  --zinc-400:#a1a1aa;
+  --zinc-300:#d4d4d8;
+  --zinc-200:#e4e4e7;
+  --zinc-100:#f4f4f5;
+  --radius-lg:1.25rem;
+  --radius-xl:2rem;
+  --ease-out-expo:cubic-bezier(0.16,1,0.3,1);
+  --font-display:'Outfit',sans-serif;
+  --font-body:'Outfit',sans-serif;
+}
+html{scroll-behavior:smooth;-webkit-font-smoothing:antialiased}
+body{
+  font-family:var(--font-body);
+  background:var(--zinc-950);
+  color:var(--zinc-300);
+  overflow-x:hidden;
+  line-height:1.6;
+  direction:rtl;
+  text-align:right;
+}
+
+/* ── Scrollbar ── */
+::-webkit-scrollbar{width:6px}
+::-webkit-scrollbar-track{background:var(--zinc-950)}
+::-webkit-scrollbar-thumb{background:var(--zinc-700);border-radius:3px}
+::-webkit-scrollbar-thumb:hover{background:var(--gold-dim)}
+
+/* ── Hero ── */
+.hero{
+  position:relative;
+  min-height:100dvh;
+  display:flex;
+  align-items:center;
+  padding:0 0 0 0;
+  overflow:hidden;
+}
+.hero-content{margin-top:-5vh}
+.hero-video{
+  position:absolute;inset:0;
+  width:100%;height:100%;
+  object-fit:cover;
+  z-index:0;
+  filter:brightness(0.65) saturate(0.8);
+}
+.hero-overlay{
+  position:absolute;inset:0;z-index:1;
+  background:linear-gradient(
+    to bottom,
+    rgba(9,9,11,0.05) 0%,
+    rgba(9,9,11,0.2) 40%,
+    rgba(9,9,11,0.75) 80%,
+    var(--zinc-950) 100%
+  );
+}
+.hero-content{
+  position:relative;z-index:2;
+  max-width:1400px;
+  width:100%;
+  margin:0 auto;
+  padding:0 clamp(1.5rem,4vw,4rem);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  text-align:center;
+}
+.hero-label{
+  font-family:var(--font-display);
+  font-size:0.75rem;
+  font-weight:600;
+  letter-spacing:0.25em;
+  text-transform:uppercase;
+  color:var(--gold);
+  margin-bottom:1.25rem;
+  opacity:0;
+  transform:translateY(20px);
+  animation:fadeUp 0.8s var(--ease-out-expo) 0.3s forwards;
+}
+.hero-title{
+  font-family:var(--font-display);
+  font-size:clamp(2.8rem,6.5vw,5.5rem);
+  font-weight:800;
+  letter-spacing:-0.04em;
+  line-height:0.95;
+  color:var(--zinc-100);
+  margin-bottom:1.5rem;
+  opacity:0;
+  transform:translateY(30px);
+  animation:fadeUp 0.8s var(--ease-out-expo) 0.5s forwards;
+}
+.hero-title span{color:var(--gold)}
+.hero-sub{
+  font-size:clamp(1rem,2vw,1.2rem);
+  color:var(--zinc-400);
+  max-width:52ch;
+  margin:0 auto;
+  line-height:1.7;
+  font-weight:300;
+  text-align:center;
+  opacity:0;
+  transform:translateY(20px);
+  animation:fadeUp 0.8s var(--ease-out-expo) 0.7s forwards;
+}
+.scroll-hint{
+  position:absolute;
+  bottom:2rem;left:50%;
+  transform:translateX(-50%);
+  z-index:2;
+  display:flex;flex-direction:column;align-items:center;gap:0.5rem;
+  opacity:0;animation:fadeUp 0.8s var(--ease-out-expo) 1.2s forwards;
+}
+.scroll-hint span{
+  font-size:0.65rem;letter-spacing:0.2em;text-transform:uppercase;
+  color:var(--zinc-600);font-family:var(--font-display);font-weight:500;
+}
+.scroll-line{
+  width:1px;height:40px;
+  background:linear-gradient(to bottom,var(--gold),transparent);
+  animation:scrollPulse 2s ease-in-out infinite;
+}
+
+/* ── Stats Bar ── */
+.stats-bar{
+  background:var(--zinc-900);
+  border-top:1px solid rgba(200,169,110,0.1);
+  border-bottom:1px solid rgba(200,169,110,0.1);
+  padding:1.5rem 0;
+}
+.stats-inner{
+  max-width:1400px;margin:0 auto;
+  padding:0 clamp(1.5rem,4vw,4rem);
+  display:flex;justify-content:space-between;align-items:center;
+  flex-wrap:wrap;gap:1.5rem;
+}
+.stat{text-align:center;flex:1;min-width:120px}
+.stat-num{
+  font-family:var(--font-display);
+  font-size:2rem;font-weight:700;
+  color:var(--gold);
+  line-height:1;
+}
+.stat-label{
+  font-size:0.8rem;
+  color:var(--zinc-500);
+  margin-top:0.25rem;
+  font-weight:400;
+}
+
+/* ── Navigation / Filters ── */
+.nav-section{
+  position:sticky;top:0;z-index:100;
+  background:rgba(9,9,11,0.85);
+  backdrop-filter:blur(20px);
+  -webkit-backdrop-filter:blur(20px);
+  border-bottom:1px solid rgba(200,169,110,0.08);
+  padding:1rem 0;
+}
+.nav-inner{
+  max-width:1400px;margin:0 auto;
+  padding:0 clamp(1.5rem,4vw,4rem);
+  display:flex;align-items:center;
+  justify-content:center;
+  gap:1rem;flex-wrap:wrap;
+  flex-direction:column;
+}
+.nav-brand{
+  font-family:var(--font-display);
+  font-weight:700;font-size:1.1rem;
+  color:var(--zinc-100);
+  white-space:nowrap;
+}
+.nav-brand span{color:var(--gold)}
+.filter-pills{
+  display:flex;gap:0.5rem;flex-wrap:wrap;
+  align-items:center;justify-content:center;
+  direction:ltr;
+}
+.pill{
+  padding:0.6rem 1.25rem;
+  min-height:44px;
+  border-radius:100px;
+  border:1px solid var(--zinc-800);
+  background:transparent;
+  color:var(--zinc-400);
+  font-family:var(--font-body);
+  font-size:0.85rem;
+  cursor:pointer;
+  transition:all 0.3s var(--ease-out-expo);
+  white-space:nowrap;
+  display:inline-flex;align-items:center;
+}
+.pill:hover{
+  border-color:var(--gold-dim);
+  color:var(--zinc-200);
+  background:rgba(200,169,110,0.06);
+}
+.pill.active{
+  background:var(--gold);
+  color:var(--zinc-950);
+  border-color:var(--gold);
+  font-weight:600;
+}
+.search-box{
+  position:relative;
+  flex-shrink:0;
+}
+.search-box input{
+  background:var(--zinc-900);
+  border:1px solid var(--zinc-800);
+  border-radius:100px;
+  padding:0.5rem 2.5rem 0.5rem 1.25rem;
+  color:var(--zinc-200);
+  font-family:var(--font-body);
+  font-size:0.85rem;
+  width:220px;
+  transition:all 0.3s var(--ease-out-expo);
+  outline:none;
+}
+.search-box input:focus{
+  border-color:var(--gold-dim);
+  width:280px;
+  box-shadow:0 0 0 3px rgba(200,169,110,0.08);
+}
+.search-box input::placeholder{color:var(--zinc-600)}
+.search-box svg{
+  position:absolute;left:0.85rem;top:50%;
+  transform:translateY(-50%);
+  width:16px;height:16px;
+  color:var(--zinc-600);
+  pointer-events:none;
+}
+
+/* ── Main Grid ── */
+.main{
+  max-width:1400px;margin:0 auto;
+  padding:3rem clamp(1.5rem,4vw,4rem) 6rem;
+}
+.section-header{
+  margin-bottom:2rem;
+  padding-bottom:1rem;
+  border-bottom:1px solid rgba(200,169,110,0.1);
+}
+.section-title{
+  font-family:var(--font-display);
+  font-size:1.5rem;
+  font-weight:700;
+  color:var(--zinc-100);
+  letter-spacing:-0.02em;
+}
+.section-title span{color:var(--gold)}
+.section-count{
+  font-size:0.8rem;
+  color:var(--zinc-600);
+  margin-top:0.25rem;
+}
+.cocktail-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(340px,1fr));
+  gap:1.25rem;
+  margin-bottom:3rem;
+}
+/* All cards uniform size */
+
+/* ── Card ── */
+.cocktail-card{
+  background:var(--zinc-900);
+  border:1px solid var(--zinc-800);
+  border-radius:var(--radius-lg);
+  cursor:pointer;
+  position:relative;
+  overflow:hidden;
+  transition:all 0.4s var(--ease-out-expo);
+  opacity:0;
+  transform:translateY(30px);
+}
+.cocktail-card.visible{
+  opacity:1;
+  transform:translateY(0);
+}
+.cocktail-card::before{
+  content:'';
+  position:absolute;inset:0;
+  background:linear-gradient(135deg,rgba(200,169,110,0.03),transparent 60%);
+  opacity:0;
+  transition:opacity 0.4s var(--ease-out-expo);
+  z-index:1;
+  pointer-events:none;
+}
+.cocktail-card:hover{
+  border-color:rgba(200,169,110,0.25);
+  transform:translateY(-3px);
+  box-shadow:0 20px 40px -15px rgba(0,0,0,0.4);
+}
+.cocktail-card:hover::before{opacity:1}
+.cocktail-card:hover .card-img img{transform:scale(1.05)}
+.cocktail-card:active{transform:translateY(-1px) scale(0.99)}
+
+/* ── Card Image ── */
+.card-img{
+  position:relative;
+  width:100%;
+  height:200px;
+  overflow:hidden;
+  background:var(--zinc-800);
+}
+
+.card-img img{
+  width:100%;
+  height:100%;
+  object-fit:cover;
+  transition:transform 0.6s var(--ease-out-expo);
+  display:block;
+}
+.card-img-overlay{
+  position:absolute;inset:0;
+  background:linear-gradient(to top,var(--zinc-900) 0%,transparent 50%);
+  pointer-events:none;
+}
+.card-img-placeholder{
+  width:100%;height:100%;
+  display:flex;align-items:center;justify-content:center;
+  background:linear-gradient(90deg,#1a1a1f 25%,#252530 50%,#1a1a1f 75%);
+  background-size:200% 100%;
+  animation:shimmer 1.8s ease-in-out infinite;
+}
+@keyframes shimmer{
+  0%{background-position:-200% 0}
+  100%{background-position:200% 0}
+}
+.card-img-placeholder svg{
+  width:40px;height:40px;
+  color:var(--zinc-700);
+  animation:pulse 2s ease-in-out infinite;
+}
+@keyframes pulse{0%,100%{opacity:0.4}50%{opacity:0.8}}
+
+.card-body{padding:1.25rem 1.5rem 1.5rem}
+
+.card-top{
+  display:flex;justify-content:space-between;
+  align-items:flex-start;margin-bottom:0.75rem;
+}
+.card-name{
+  font-family:var(--font-display);
+  font-size:1.3rem;
+  font-weight:700;
+  color:var(--zinc-100);
+  letter-spacing:-0.02em;
+  line-height:1.2;
+}
+.difficulty{
+  padding:0.2rem 0.7rem;
+  border-radius:100px;
+  font-size:0.68rem;
+  font-weight:600;
+  letter-spacing:0.05em;
+  text-transform:uppercase;
+  white-space:nowrap;
+  flex-shrink:0;
+  margin-left:0.75rem;
+}
+.difficulty.easy{background:rgba(251,191,36,0.1);color:#FBBF24;border:1px solid rgba(251,191,36,0.15)}
+.difficulty.medium{background:rgba(245,158,11,0.1);color:#F59E0B;border:1px solid rgba(245,158,11,0.15)}
+.difficulty.hard{background:rgba(248,113,113,0.1);color:#F87171;border:1px solid rgba(248,113,113,0.15)}
+
+.card-desc{
+  font-size:0.85rem;
+  color:var(--zinc-500);
+  margin-bottom:1rem;
+  line-height:1.6;
+  font-weight:300;
+}
+.card-ingredients{
+  display:flex;flex-wrap:wrap;gap:0.35rem;
+  margin-bottom:1rem;
+}
+.ingredient-tag{
+  padding:0.2rem 0.6rem;
+  border-radius:6px;
+  font-size:0.72rem;
+  background:rgba(200,169,110,0.06);
+  color:var(--gold);
+  border:1px solid rgba(200,169,110,0.1);
+  font-weight:400;
+}
+
+.card-meters{
+  display:flex;gap:1rem;
+  padding-top:0.75rem;
+  border-top:1px solid var(--zinc-800);
+}
+.meter{flex:1}
+.meter-label{
+  font-size:0.62rem;
+  color:var(--zinc-600);
+  margin-bottom:0.3rem;
+  text-transform:uppercase;
+  letter-spacing:0.08em;
+  font-weight:500;
+}
+.meter-bar{
+  height:3px;
+  background:var(--zinc-800);
+  border-radius:2px;
+  overflow:hidden;
+}
+.meter-fill{
+  height:100%;
+  background:var(--gold);
+  border-radius:2px;
+  transition:width 0.8s var(--ease-out-expo);
+  width:0;
+}
+.meter-fill.loaded{width:var(--val)}
+
+/* ── Expanded Card (Recipe) ── */
+.card-recipe{
+  max-height:0;
+  overflow:hidden;
+  transition:max-height 0.5s var(--ease-out-expo),
+             padding 0.3s var(--ease-out-expo),
+             opacity 0.3s ease;
+  opacity:0;
+}
+.cocktail-card.expanded .card-recipe{
+  max-height:800px;
+  padding-top:1rem;
+  opacity:1;
+}
+.recipe-section-title{
+  font-family:var(--font-display);
+  font-size:0.75rem;
+  font-weight:600;
+  color:var(--gold);
+  text-transform:uppercase;
+  letter-spacing:0.12em;
+  margin-bottom:0.5rem;
+}
+.recipe-ingredients-list{
+  list-style:none;
+  margin-bottom:1.25rem;
+}
+.recipe-ingredients-list li{
+  font-size:0.85rem;
+  color:var(--zinc-300);
+  padding:0.35rem 0;
+  border-bottom:1px solid rgba(63,63,70,0.3);
+  display:flex;justify-content:space-between;
+}
+.recipe-ingredients-list li:last-child{border-bottom:none}
+.recipe-ingredients-list .amount{
+  color:var(--gold);
+  font-weight:500;
+}
+.recipe-steps{
+  list-style:none;
+  counter-reset:step;
+}
+.recipe-steps li{
+  font-size:0.85rem;
+  color:var(--zinc-400);
+  padding:0.5rem 0 0.5rem 2.2rem;
+  position:relative;
+  counter-increment:step;
+  font-weight:300;
+}
+.recipe-steps li::before{
+  content:counter(step);
+  position:absolute;left:0;top:0.5rem;
+  width:1.4rem;height:1.4rem;
+  border-radius:50%;
+  background:rgba(200,169,110,0.1);
+  color:var(--gold);
+  font-size:0.7rem;
+  font-weight:600;
+  display:flex;align-items:center;justify-content:center;
+  font-family:var(--font-display);
+}
+
+/* ── Footer ── */
+.footer{
+  border-top:1px solid var(--zinc-800);
+  padding:3rem 0;
+  text-align:center;
+}
+.footer p{
+  font-size:0.8rem;
+  color:var(--zinc-600);
+  font-weight:300;
+}
+.footer span{color:var(--gold);font-weight:500}
+
+/* ── Animations ── */
+@keyframes fadeUp{
+  to{opacity:1;transform:translateY(0)}
+}
+@keyframes scrollPulse{
+  0%,100%{opacity:0.3;transform:scaleY(0.6)}
+  50%{opacity:1;transform:scaleY(1)}
+}
+
+/* ── No Results ── */
+.no-results{
+  text-align:center;
+  padding:4rem 2rem;
+  color:var(--zinc-600);
+  font-size:1rem;
+  grid-column:1/-1;
+}
+
+/* ── Responsive ── */
+@media(max-width:768px){
+
+  .cocktail-grid{grid-template-columns:1fr}
+  .nav-inner{flex-direction:column;align-items:center}
+  .filter-pills{overflow-x:auto;flex-wrap:nowrap;padding-bottom:0.5rem;-webkit-overflow-scrolling:touch;justify-content:center;width:90%;max-width:600px}
+  .search-box{width:90%;max-width:400px}
+  .search-box input{width:100%}
+  .search-box input:focus{width:100%}
+  .stats-inner{justify-content:center}
+  .hero{min-height:100svh;align-items:center;padding:0}
+  .hero-content{text-align:center}
+  .hero-sub{margin:0 auto}
+}
+@media(max-width:480px){
+  .cocktail-grid{grid-template-columns:1fr}
+  .card-img{height:180px!important}
+}
+
+/* ── Focus Indicators ── */
+button:focus-visible,
+[role="button"]:focus-visible,
+input:focus-visible{
+  outline:2px solid #D4A853;
+  outline-offset:2px;
+}
+
+/* ── Tactile Press ── */
+button:active,[role="button"]:active{
+  transform:scale(0.97);
+  transition-duration:0.08s;
+}
+
+/* ── Card Expand Chevron ── */
+.card-chevron{
+  position:absolute;bottom:0.75rem;left:50%;
+  transform:translateX(-50%);
+  width:20px;height:20px;
+  color:var(--zinc-600);
+  transition:transform 0.3s var(--ease-out-expo),color 0.3s;
+  z-index:2;
+}
+.cocktail-card.expanded .card-chevron{transform:translateX(-50%) rotate(180deg);color:var(--gold)}
+
+/* ── Back to Top ── */
+.back-to-top{
+  position:fixed;bottom:2rem;left:2rem;
+  width:44px;height:44px;
+  border-radius:50%;
+  background:var(--gold);
+  color:var(--zinc-950);
+  border:none;
+  font-size:1.2rem;
+  cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  opacity:0;
+  transform:translateY(10px);
+  transition:all 0.3s var(--ease-out-expo);
+  z-index:99;
+  box-shadow:0 4px 20px rgba(200,169,110,0.3);
+}
+.back-to-top.visible{opacity:1;transform:translateY(0)}
+.back-to-top:hover{transform:translateY(-2px);box-shadow:0 6px 25px rgba(200,169,110,0.4)}
+
+/* ── Grain Overlay ── */
+body::after{
+  content:'';
+  position:fixed;
+  inset:0;
+  pointer-events:none;
+  z-index:9999;
+  opacity:0.03;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-repeat:repeat;
+  background-size:256px 256px;
+}
+</style>
+</head>
+<body>
+
+<!-- HERO -->
+<section class="hero">
+  <video class="hero-video" autoplay muted loop playsinline>
+    <source src="bg-video.mp4" type="video/mp4">
+  </video>
+  <div class="hero-overlay"></div>
+  <div class="hero-content">
+    <p style="font-family:var(--font-display);font-size:clamp(1.5rem,3.5vw,2.5rem);font-weight:300;color:var(--zinc-200);text-align:center;unicode-bidi:plaintext">
+      What type of cocktail do you want to make today?
+    </p>
+  </div>
+  <div class="scroll-hint">
+    <span>Scroll</span>
+    <div class="scroll-line"></div>
+  </div>
+</section>
+
+
+<!-- NAV / FILTERS -->
+<nav class="nav-section">
+  <div class="nav-inner">
+    <div class="filter-pills" role="group" aria-label="סינון לפי קטגוריה">
+      <button class="pill active" data-filter="all">הכל</button>
+      <button class="pill" data-filter="strong">חזק ומר</button>
+      <button class="pill" data-filter="sweet">מתוק וקרמי</button>
+      <button class="pill" data-filter="sour">חמוץ ומרענן</button>
+      <button class="pill" data-filter="fruity">פירותי וטרופי</button>
+    </div>
+    <div class="search-box">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+      <input type="text" id="searchInput" placeholder="...חפש קוקטייל" aria-label="חיפוש קוקטייל">
+    </div>
+  </div>
+</nav>
+
+<!-- MAIN -->
+<main class="main" id="mainContent"></main>
+
+<!-- FOOTER -->
+<footer class="footer">
+  <p dir="rtl">אנציקלופדיית קוקטיילים</p>
+</footer>
+
+<script>
+// ═══════════════════════════════════════
+//  COCKTAIL DATA — 50 Recipes
+// ═══════════════════════════════════════
+const cocktails = [
+  // ── חזק ומר ──
+  {name:"Negroni",category:"strong",desc:"שילוש מושלם של מרירות, מתיקות ובוטניקה.",difficulty:"easy",sweet:3,sour:1,complex:6,
+    ingredients:[{item:"ג'ין",amount:"30 מ\"ל"},{item:"קמפרי",amount:"30 מ\"ל"},{item:"ורמוט מתוק",amount:"30 מ\"ל"}],
+    steps:["יוצקים את כל המרכיבים לכוס ערבוב עם קרח","מערבבים כ-30 שניות","מסננים לכוס רוקס על קוביית קרח גדולה","מקשטים בקליפת תפוז"]},
+  {name:"Old Fashioned",category:"strong",desc:"אבן הפינה של תרבות הקוקטיילים — פשוט, חזק, נצחי.",difficulty:"easy",sweet:3,sour:0,complex:5,
+    ingredients:[{item:"בורבון",amount:"60 מ\"ל"},{item:"קוביית סוכר",amount:"1"},{item:"אנגוסטורה ביטרס",amount:"2-3 דשים"}],
+    steps:["מניחים קוביית סוכר בכוס רוקס","מוסיפים ביטרס ומועכים בעדינות","מוסיפים קרח גדול ובורבון","מערבבים בעדינות ומקשטים בקליפת תפוז"]},
+  {name:"Manhattan",category:"strong",desc:"אלגנטיות ניו יורקית בכל לגימה.",difficulty:"easy",sweet:4,sour:0,complex:6,
+    ingredients:[{item:"וויסקי ריי",amount:"60 מ\"ל"},{item:"ורמוט מתוק",amount:"30 מ\"ל"},{item:"אנגוסטורה ביטרס",amount:"2 דשים"}],
+    steps:["יוצקים את כל המרכיבים לכוס ערבוב עם קרח","מערבבים כ-30 שניות","מסננים לכוס מרטיני מצוננת","מקשטים בדובדבן מרסקינו"]},
+  {name:"Sazerac",category:"strong",desc:"הקוקטייל הוותיק ביותר מניו אורלינס.",difficulty:"hard",sweet:2,sour:0,complex:8,
+    ingredients:[{item:"וויסקי ריי",amount:"60 מ\"ל"},{item:"אבסינת (שטיפה)",amount:"דש"},{item:"ביטרס פישו",amount:"3 דשים"},{item:"קוביית סוכר",amount:"1"}],
+    steps:["שוטפים כוס רוקס מצוננת באבסינת ומשליכים","בכוס נפרדת מועכים סוכר עם ביטרס","מוסיפים ריי וקרח, מערבבים היטב","מסננים לכוס המצופה, מקשטים בקליפת לימון"]},
+  {name:"Boulevardier",category:"strong",desc:"נגרוני עם בורבון — חם יותר, עמוק יותר.",difficulty:"easy",sweet:3,sour:1,complex:6,
+    ingredients:[{item:"בורבון",amount:"45 מ\"ל"},{item:"קמפרי",amount:"30 מ\"ל"},{item:"ורמוט מתוק",amount:"30 מ\"ל"}],
+    steps:["יוצקים את כל המרכיבים לכוס ערבוב עם קרח","מערבבים 30 שניות","מסננים לכוס רוקס על קרח","מקשטים בטוויסט תפוז"]},
+  {name:"Rob Roy",category:"strong",desc:"מנהטן סקוטי — עשן פוגש מתיקות.",difficulty:"easy",sweet:4,sour:0,complex:5,
+    ingredients:[{item:"סקוטש",amount:"60 מ\"ל"},{item:"ורמוט מתוק",amount:"30 מ\"ל"},{item:"אנגוסטורה ביטרס",amount:"2 דשים"}],
+    steps:["יוצקים את כל המרכיבים לכוס ערבוב עם קרח","מערבבים 30 שניות","מסננים לכוס מרטיני","מקשטים בדובדבן מרסקינו"]},
+  {name:"Vieux Carré",category:"strong",desc:"מורכבות צרפתית-אמריקאית בכוס אחת.",difficulty:"hard",sweet:4,sour:0,complex:9,
+    ingredients:[{item:"וויסקי ריי",amount:"30 מ\"ל"},{item:"קוניאק",amount:"30 מ\"ל"},{item:"ורמוט מתוק",amount:"30 מ\"ל"},{item:"בנדיקטין",amount:"10 מ\"ל"},{item:"ביטרס",amount:"2 דשים"}],
+    steps:["יוצקים את כל המרכיבים לכוס ערבוב עם קרח","מערבבים היטב 30 שניות","מסננים לכוס רוקס על קוביית קרח גדולה","מקשטים בקליפת לימון"]},
+  {name:"Black Russian",category:"strong",desc:"פשטות מוחלטת — וודקה וקפה.",difficulty:"easy",sweet:5,sour:0,complex:3,
+    ingredients:[{item:"וודקה",amount:"50 מ\"ל"},{item:"קהלואה",amount:"25 מ\"ל"}],
+    steps:["ממלאים כוס רוקס בקרח","יוצקים וודקה וקהלואה","מערבבים בעדינות"]},
+  {name:"Americano",category:"strong",desc:"אפריטיבו איטלקי קלאסי, מרענן ומר.",difficulty:"easy",sweet:3,sour:1,complex:4,
+    ingredients:[{item:"קמפרי",amount:"30 מ\"ל"},{item:"ורמוט מתוק",amount:"30 מ\"ל"},{item:"סודה",amount:"למילוי"}],
+    steps:["ממלאים כוס הייבול בקרח","יוצקים קמפרי וורמוט","ממלאים בסודה ומערבבים בעדינות","מקשטים בפרוסת תפוז"]},
+  {name:"Toronto",category:"strong",desc:"אולד פאשנד עם פרנט ברנקה — מר ומורכב.",difficulty:"medium",sweet:2,sour:0,complex:7,
+    ingredients:[{item:"וויסקי ריי",amount:"60 מ\"ל"},{item:"פרנט ברנקה",amount:"15 מ\"ל"},{item:"סירופ פשוט",amount:"5 מ\"ל"},{item:"ביטרס",amount:"2 דשים"}],
+    steps:["יוצקים את כל המרכיבים לכוס ערבוב עם קרח","מערבבים 30 שניות","מסננים לכוס רוקס על קרח","מקשטים בקליפת תפוז"]},
+  {name:"Oaxacan Old Fashioned",category:"strong",desc:"טוויסט מקסיקני מעושן על הקלאסיקה.",difficulty:"medium",sweet:3,sour:0,complex:7,
+    ingredients:[{item:"טקילה",amount:"45 מ\"ל"},{item:"מזקל",amount:"15 מ\"ל"},{item:"סירופ אגבה",amount:"10 מ\"ל"},{item:"ביטרס מולה",amount:"2 דשים"}],
+    steps:["יוצקים את כל המרכיבים לכוס ערבוב עם קרח","מערבבים 30 שניות","מסננים לכוס רוקס על קרח גדול","מקשטים בקליפת תפוז מלוהטת"]},
+  {name:"Negroni Sbagliato",category:"strong",desc:"הנגרוני ה'טעות' — פרוסקו במקום ג'ין.",difficulty:"easy",sweet:4,sour:1,complex:5,
+    ingredients:[{item:"קמפרי",amount:"30 מ\"ל"},{item:"ורמוט מתוק",amount:"30 מ\"ל"},{item:"פרוסקו",amount:"30 מ\"ל"}],
+    steps:["ממלאים כוס יין בקרח","יוצקים קמפרי וורמוט","ממלאים בפרוסקו","מערבבים בעדינות ומקשטים בפרוסת תפוז"]},
+  {name:"Paper Plane",category:"strong",desc:"רביעייה מאוזנת לחלוטין בחלקים שווים.",difficulty:"medium",sweet:3,sour:4,complex:7,
+    ingredients:[{item:"בורבון",amount:"22 מ\"ל"},{item:"אפרול",amount:"22 מ\"ל"},{item:"אמרו נונינו",amount:"22 מ\"ל"},{item:"מיץ לימון",amount:"22 מ\"ל"}],
+    steps:["יוצקים את כל המרכיבים לשייקר עם קרח","מנערים בחוזקה 15 שניות","מסננים סינון כפול לכוס קופה","מגישים ללא קישוט"]},
+  {name:"Last Word",category:"strong",desc:"קלאסיקה נשכחת שחזרה בגדול.",difficulty:"medium",sweet:3,sour:4,complex:8,
+    ingredients:[{item:"ג'ין",amount:"22 מ\"ל"},{item:"שארטרוז ירוק",amount:"22 מ\"ל"},{item:"ליקר מרסקינו",amount:"22 מ\"ל"},{item:"מיץ ליים",amount:"22 מ\"ל"}],
+    steps:["יוצקים את כל המרכיבים לשייקר עם קרח","מנערים בחוזקה","מסננים סינון כפול לכוס קופה","מקשטים בדובדבן מרסקינו"]},
+  {name:"Jungle Bird",category:"strong",desc:"טרופי פוגש מר — שילוב מנצח ובלתי צפוי.",difficulty:"medium",sweet:4,sour:3,complex:6,
+    ingredients:[{item:"רום כהה",amount:"45 מ\"ל"},{item:"קמפרי",amount:"22 מ\"ל"},{item:"מיץ אננס",amount:"45 מ\"ל"},{item:"מיץ ליים",amount:"15 מ\"ל"}],
+    steps:["יוצקים את כל המרכיבים לשייקר עם קרח","מנערים בחוזקה","מסננים לכוס רוקס על קרח","מקשטים בפרוסת אננס"]},
+
+  // ── מתוק וקרמי ──
+  {name:"White Russian",category:"sweet",desc:"האח הקרמי של הרוסי השחור.",difficulty:"easy",sweet:7,sour:0,complex:3,
+    ingredients:[{item:"וודקה",amount:"50 מ\"ל"},{item:"קהלואה",amount:"25 מ\"ל"},{item:"שמנת מתוקה",amount:"25 מ\"ל"}],
+    steps:["ממלאים כוס רוקס בקרח","יוצקים וודקה וקהלואה","מציפים שמנת בעדינות על גב כפית"]},
+  {name:"Brandy Alexander",category:"sweet",desc:"אלגנטיות של תור הזהב, עשיר וקרמי.",difficulty:"easy",sweet:8,sour:0,complex:4,
+    ingredients:[{item:"קוניאק",amount:"30 מ\"ל"},{item:"קרם דה קקאו לבן",amount:"30 מ\"ל"},{item:"שמנת מתוקה",amount:"30 מ\"ל"}],
+    steps:["יוצקים את כל המרכיבים לשייקר עם קרח","מנערים בחוזקה","מסננים לכוס קופה","מפזרים אגוז מוסקט טרי"]},
+  {name:"Mudslide",category:"sweet",desc:"קינוח נוזלי שאי אפשר לעמוד בפניו.",difficulty:"easy",sweet:9,sour:0,complex:2,
+    ingredients:[{item:"וודקה",amount:"30 מ\"ל"},{item:"קהלואה",amount:"30 מ\"ל"},{item:"בייליס",amount:"30 מ\"ל"}],
+    steps:["יוצקים את כל המרכיבים לשייקר עם קרח","מנערים בחוזקה","מסננים לכוס רוקס על קרח","מקשטים בשוקולד מגורר"]},
+  {name:"Grasshopper",category:"sweet",desc:"ירוק, מנטה, קרמי — קינוח בכוס.",difficulty:"easy",sweet:8,sour:0,complex:2,
+    ingredients:[{item:"קרם דה מנט ירוק",amount:"30 מ\"ל"},{item:"קרם דה קקאו לבן",amount:"30 מ\"ל"},{item:"שמנת מתוקה",amount:"30 מ\"ל"}],
+    steps:["יוצקים את כל המרכיבים לשייקר עם קרח","מנערים בחוזקה","מסננים לכוס מרטיני מצוננת","מקשטים בעלה נענע"]},
+  {name:"Chocolate Martini",category:"sweet",desc:"פינוק שוקולד אלגנטי.",difficulty:"easy",sweet:8,sour:0,complex:3,
+    ingredients:[{item:"וודקה",amount:"45 מ\"ל"},{item:"ליקר שוקולד",amount:"30 מ\"ל"},{item:"שמנת",amount:"15 מ\"ל"}],
+    steps:["יוצקים את כל המרכיבים לשייקר עם קרח","מנערים בחוזקה","מסננים לכוס מרטיני","מקשטים בשבבי שוקולד"]},
+  {name:"Golden Cadillac",category:"sweet",desc:"קלאסיקה אמריקאית עשירה עם נגיעות וניל.",difficulty:"easy",sweet:7,sour:0,complex:4,
+    ingredients:[{item:"גליאנו",amount:"30 מ\"ל"},{item:"קרם דה קקאו לבן",amount:"30 מ\"ל"},{item:"שמנת מתוקה",amount:"30 מ\"ל"}],
+    steps:["יוצקים את כל המרכיבים לשייקר עם קרח","מנערים בחוזקה","מסננים לכוס קופה מצוננת"]},
+  {name:"Pink Squirrel",category:"sweet",desc:"ורוד, אגוזי, קרמי — רטרו במיטבו.",difficulty:"easy",sweet:8,sour:0,complex:3,
+    ingredients:[{item:"קרם דה נויו",amount:"30 מ\"ל"},{item:"קרם דה קקאו לבן",amount:"30 מ\"ל"},{item:"שמנת מתוקה",amount:"30 מ\"ל"}],
+    steps:["יוצקים את כל המרכיבים לשייקר עם קרח","מנערים בחוזקה","מסננים לכוס מרטיני מצוננת"]},
+  {name:"Toasted Almond",category:"sweet",desc:"שקדים קלויים בכוס — חלומי.",difficulty:"easy",sweet:7,sour:0,complex:3,
+    ingredients:[{item:"אמרטו",amount:"30 מ\"ל"},{item:"קהלואה",amount:"30 מ\"ל"},{item:"שמנת מתוקה",amount:"30 מ\"ל"}],
+    steps:["ממלאים כוס רוקס בקרח","יוצקים אמרטו וקהלואה","מציפים שמנת על גב כפית"]},
+  {name:"Bushwacker",category:"sweet",desc:"פינה קולדה פוגשת קפה קר — פיצוץ טרופי-קרמי.",difficulty:"medium",sweet:9,sour:0,complex:4,
+    ingredients:[{item:"רום",amount:"30 מ\"ל"},{item:"קהלואה",amount:"30 מ\"ל"},{item:"בייליס",amount:"30 מ\"ל"},{item:"קרם קוקוס",amount:"30 מ\"ל"},{item:"גלידת וניל",amount:"כדור 1"}],
+    steps:["מערבבים את כל המרכיבים בבלנדר","מוסיפים קרח ומערבבים עד לטקסטורה חלקה","יוצקים לכוס הוריקן","מקשטים בקוקוס מגורר ושוקולד"]},
+  {name:"Baileys Colada",category:"sweet",desc:"פינה קולדה אירית — שמנת פוגשת טרופי.",difficulty:"easy",sweet:8,sour:0,complex:3,
+    ingredients:[{item:"בייליס",amount:"45 מ\"ל"},{item:"רום",amount:"30 מ\"ל"},{item:"קרם קוקוס",amount:"30 מ\"ל"},{item:"מיץ אננס",amount:"60 מ\"ל"}],
+    steps:["מערבבים את כל המרכיבים עם קרח בבלנדר","מערבבים עד לטקסטורה חלקה","יוצקים לכוס הוריקן","מקשטים בפרוסת אננס"]},
+  {name:"Carajillo",category:"sweet",desc:"ליקר 43 ואספרסו — פשטות ספרדית מושלמת.",difficulty:"easy",sweet:6,sour:0,complex:4,
+    ingredients:[{item:"ליקר 43",amount:"45 מ\"ל"},{item:"אספרסו כפול",amount:"שוט 1"},{item:"קרח",amount:"כוס מלאה"}],
+    steps:["ממלאים כוס רוקס בקרח","יוצקים ליקר 43","מוסיפים אספרסו כפול חם ישירות על הקרח","מערבבים בעדינות"]},
+
+  // ── חמוץ ומרענן ──
+  {name:"Margarita",category:"sour",desc:"מלכת הקוקטיילים החמוצים — תמיד קלאסית.",difficulty:"easy",sweet:3,sour:7,complex:4,
+    ingredients:[{item:"טקילה",amount:"50 מ\"ל"},{item:"מיץ ליים",amount:"25 מ\"ל"},{item:"טריפל סק",amount:"20 מ\"ל"}],
+    steps:["יוצקים את כל המרכיבים לשייקר עם קרח","מנערים בחוזקה","מסננים לכוס מרגריטה עם שפת מלח","מקשטים בפלח ליים"]},
+  {name:"Daiquiri",category:"sour",desc:"שלושה מרכיבים, אלף אפשרויות.",difficulty:"easy",sweet:3,sour:6,complex:3,
+    ingredients:[{item:"רום לבן",amount:"60 מ\"ל"},{item:"מיץ ליים טרי",amount:"25 מ\"ל"},{item:"סירופ פשוט",amount:"15 מ\"ל"}],
+    steps:["יוצקים את כל המרכיבים לשייקר עם קרח","מנערים בחוזקה 15 שניות","מסננים סינון כפול לכוס קופה מצוננת","מקשטים בגלגל ליים"]},
+  {name:"Whiskey Sour",category:"sour",desc:"בורבון עם קצף משי — שלמות.",difficulty:"medium",sweet:3,sour:6,complex:5,
+    ingredients:[{item:"בורבון",amount:"60 מ\"ל"},{item:"מיץ לימון",amount:"25 מ\"ל"},{item:"סירופ פשוט",amount:"20 מ\"ל"},{item:"חלבון ביצה",amount:"1"}],
+    steps:["מנערים את כל המרכיבים ללא קרח 15 שניות","מוסיפים קרח ומנערים שוב בחוזקה","מסננים סינון כפול לכוס רוקס","מקשטים בטיפות ביטרס על הקצף"]},
+  {name:"Mojito",category:"sour",desc:"הקיץ הקובני בכוס אחת.",difficulty:"easy",sweet:4,sour:5,complex:3,
+    ingredients:[{item:"רום לבן",amount:"50 מ\"ל"},{item:"מיץ ליים",amount:"25 מ\"ל"},{item:"סירופ פשוט",amount:"20 מ\"ל"},{item:"נענע טרייה",amount:"8-10 עלים"},{item:"סודה",amount:"למילוי"}],
+    steps:["מועכים בעדינות עלי נענע עם סירופ וליים","ממלאים את הכוס בקרח כתוש","יוצקים רום ומערבבים","ממלאים בסודה ומקשטים בנענע"]},
+  {name:"Tom Collins",category:"sour",desc:"קלאסיקה בריטית מרעננת.",difficulty:"easy",sweet:3,sour:5,complex:3,
+    ingredients:[{item:"ג'ין",amount:"50 מ\"ל"},{item:"מיץ לימון",amount:"25 מ\"ל"},{item:"סירופ פשוט",amount:"15 מ\"ל"},{item:"סודה",amount:"למילוי"}],
+    steps:["יוצקים ג'ין, לימון וסירופ לשייקר עם קרח","מנערים בחוזקה","מסננים לכוס הייבול על קרח","ממלאים בסודה, מקשטים בלימון ודובדבן"]},
+  {name:"Gimlet",category:"sour",desc:"פשטות בריטית — ג'ין וליים, נקודה.",difficulty:"easy",sweet:3,sour:6,complex:3,
+    ingredients:[{item:"ג'ין",amount:"60 מ\"ל"},{item:"מיץ ליים טרי",amount:"22 מ\"ל"},{item:"סירופ פשוט",amount:"15 מ\"ל"}],
+    steps:["יוצקים את כל המרכיבים לשייקר עם קרח","מנערים בחוזקה","מסננים סינון כפול לכוס קופה","מקשטים בגלגל ליים"]},
+  {name:"French 75",category:"sour",desc:"ג'ין ושמפניה — חגיגה צרפתית.",difficulty:"medium",sweet:3,sour:5,complex:5,
+    ingredients:[{item:"ג'ין",amount:"30 מ\"ל"},{item:"מיץ לימון",amount:"15 מ\"ל"},{item:"סירופ פשוט",amount:"10 מ\"ל"},{item:"שמפניה",amount:"60 מ\"ל"}],
+    steps:["יוצקים ג'ין, לימון וסירופ לשייקר עם קרח","מנערים בחוזקה","מסננים לכוס שמפניה","ממלאים בשמפניה קרה"]},
+  {name:"Bee's Knees",category:"sour",desc:"ג'ין ודבש — מתקופת היובש.",difficulty:"easy",sweet:4,sour:5,complex:4,
+    ingredients:[{item:"ג'ין",amount:"60 מ\"ל"},{item:"מיץ לימון",amount:"22 מ\"ל"},{item:"סירופ דבש",amount:"22 מ\"ל"}],
+    steps:["יוצקים את כל המרכיבים לשייקר עם קרח","מנערים בחוזקה","מסננים סינון כפול לכוס קופה","מקשטים בטוויסט לימון"]},
+  {name:"Clover Club",category:"sour",desc:"ורוד, חמוץ, קצפי — אלגנטיות נשכחת שחזרה לחיים.",difficulty:"medium",sweet:4,sour:5,complex:5,
+    ingredients:[{item:"ג'ין",amount:"45 מ\"ל"},{item:"מיץ לימון",amount:"22 מ\"ל"},{item:"סירופ פטל",amount:"22 מ\"ל"},{item:"חלבון ביצה",amount:"1"}],
+    steps:["מנערים את כל המרכיבים ללא קרח","מוסיפים קרח ומנערים שוב בחוזקה","מסננים סינון כפול לכוס קופה","מקשטים בפטל טרי"]},
+  {name:"Penicillin",category:"sour",desc:"התרופה הסקוטית המושלמת.",difficulty:"medium",sweet:3,sour:5,complex:7,
+    ingredients:[{item:"סקוטש בלנדד",amount:"50 מ\"ל"},{item:"סקוטש איילה (ציפה)",amount:"10 מ\"ל"},{item:"מיץ לימון",amount:"22 מ\"ל"},{item:"סירופ ג'ינג'ר-דבש",amount:"22 מ\"ל"}],
+    steps:["יוצקים סקוטש בלנדד, לימון וסירופ לשייקר עם קרח","מנערים בחוזקה","מסננים סינון כפול לכוס רוקס על קרח","מציפים סקוטש איילה מעל"]},
+  {name:"Amaretto Sour",category:"sour",desc:"חמוץ-מתוק עם עומק של בורבון.",difficulty:"medium",sweet:5,sour:5,complex:4,
+    ingredients:[{item:"אמרטו",amount:"45 מ\"ל"},{item:"בורבון",amount:"22 מ\"ל"},{item:"מיץ לימון",amount:"30 מ\"ל"},{item:"סירופ פשוט",amount:"10 מ\"ל"},{item:"חלבון ביצה",amount:"1"}],
+    steps:["מנערים את כל המרכיבים ללא קרח","מוסיפים קרח ומנערים שוב בחוזקה","מסננים סינון כפול לכוס רוקס על קרח","מקשטים בדובדבן וביטרס על הקצף"]},
+
+  // ── פירותי וטרופי ──
+  {name:"Espresso Martini",category:"fruity",desc:"אנרגיה ואלגנטיות בכוס אחת.",difficulty:"medium",sweet:4,sour:1,complex:5,
+    ingredients:[{item:"וודקה",amount:"45 מ\"ל"},{item:"קהלואה",amount:"22 מ\"ל"},{item:"אספרסו טרי",amount:"שוט 1"},{item:"סירופ פשוט",amount:"10 מ\"ל"}],
+    steps:["יוצקים את כל המרכיבים לשייקר עם קרח","מנערים בחוזקה 15 שניות ליצירת קרמה","מסננים סינון כפול לכוס מרטיני מצוננת","מקשטים ב-3 פולי קפה"]},
+  {name:"Aperol Spritz",category:"fruity",desc:"שקיעה איטלקית בכוס — קיץ בלגימה.",difficulty:"easy",sweet:5,sour:2,complex:3,
+    ingredients:[{item:"פרוסקו",amount:"90 מ\"ל"},{item:"אפרול",amount:"60 מ\"ל"},{item:"סודה",amount:"30 מ\"ל"}],
+    steps:["ממלאים כוס יין גדולה בקרח","יוצקים פרוסקו ואפרול","ממלאים בסודה","מערבבים בעדינות ומקשטים בפרוסת תפוז"]},
+  {name:"Pina Colada",category:"fruity",desc:"חוף טרופי בכל לגימה.",difficulty:"easy",sweet:7,sour:1,complex:2,
+    ingredients:[{item:"רום לבן",amount:"60 מ\"ל"},{item:"קרם קוקוס",amount:"45 מ\"ל"},{item:"מיץ אננס",amount:"90 מ\"ל"}],
+    steps:["מערבבים את כל המרכיבים עם קרח בבלנדר","מערבבים עד לטקסטורה חלקה","יוצקים לכוס הוריקן","מקשטים באננס ודובדבן"]},
+  {name:"Mai Tai",category:"fruity",desc:"מלך הטיקי — רום, שקד וליים.",difficulty:"hard",sweet:4,sour:4,complex:7,
+    ingredients:[{item:"רום לבן",amount:"30 מ\"ל"},{item:"רום כהה",amount:"30 מ\"ל"},{item:"טריפל סק",amount:"15 מ\"ל"},{item:"סירופ אורגט",amount:"15 מ\"ל"},{item:"מיץ ליים",amount:"25 מ\"ל"}],
+    steps:["יוצקים את כל המרכיבים לשייקר עם קרח","מנערים בחוזקה","מסננים לכוס רוקס על קרח כתוש","מקשטים בענף נענע ופלח ליים"]},
+  {name:"Pornstar Martini",category:"fruity",desc:"פסיפלורה, וניל ושמפניה — להיט העשור.",difficulty:"medium",sweet:6,sour:3,complex:5,
+    ingredients:[{item:"וודקה וניל",amount:"45 מ\"ל"},{item:"ליקר פסיפלורה",amount:"15 מ\"ל"},{item:"מיץ פסיפלורה",amount:"30 מ\"ל"},{item:"מיץ ליים",amount:"15 מ\"ל"}],
+    steps:["יוצקים את כל המרכיבים לשייקר עם קרח","מנערים בחוזקה","מסננים סינון כפול לכוס קופה","מקשטים בחצי פסיפלורה, מגישים עם שוט פרוסקו בצד"]},
+  {name:"Paloma",category:"fruity",desc:"האלטרנטיבה המקסיקנית האמיתית למרגריטה.",difficulty:"easy",sweet:3,sour:4,complex:3,
+    ingredients:[{item:"טקילה",amount:"50 מ\"ל"},{item:"מיץ ליים",amount:"15 מ\"ל"},{item:"מיץ אשכולית",amount:"45 מ\"ל"},{item:"סודה אשכולית",amount:"למילוי"}],
+    steps:["ממלאים כוס הייבול בקרח","יוצקים טקילה, ליים ומיץ אשכולית","ממלאים בסודה אשכולית","מערבבים ומקשטים בפרוסת אשכולית"]},
+  {name:"Cosmopolitan",category:"fruity",desc:"ורוד, אלגנטי, ותמיד רלוונטי.",difficulty:"easy",sweet:4,sour:4,complex:4,
+    ingredients:[{item:"וודקה הדרים",amount:"40 מ\"ל"},{item:"טריפל סק",amount:"15 מ\"ל"},{item:"מיץ ליים",amount:"15 מ\"ל"},{item:"מיץ חמוציות",amount:"30 מ\"ל"}],
+    steps:["יוצקים את כל המרכיבים לשייקר עם קרח","מנערים בחוזקה","מסננים סינון כפול לכוס מרטיני מצוננת","מקשטים בטוויסט תפוז מלוהט"]},
+  {name:"Sex on the Beach",category:"fruity",desc:"פירותי, מתוק, ואי אפשר להפסיק לשתות.",difficulty:"easy",sweet:7,sour:2,complex:2,
+    ingredients:[{item:"וודקה",amount:"40 מ\"ל"},{item:"שנפס אפרסק",amount:"20 מ\"ל"},{item:"מיץ תפוזים",amount:"40 מ\"ל"},{item:"מיץ חמוציות",amount:"40 מ\"ל"}],
+    steps:["ממלאים כוס הייבול בקרח","יוצקים את כל המרכיבים","מערבבים בעדינות","מקשטים בפרוסת תפוז"]},
+  {name:"Tequila Sunrise",category:"fruity",desc:"זריחה בכוס — שכבות של צבע וטעם.",difficulty:"easy",sweet:6,sour:2,complex:2,
+    ingredients:[{item:"טקילה",amount:"45 מ\"ל"},{item:"מיץ תפוזים",amount:"120 מ\"ל"},{item:"גרנדין",amount:"15 מ\"ל"}],
+    steps:["ממלאים כוס הייבול בקרח","יוצקים טקילה ומיץ תפוזים","מערבבים בעדינות","יוצקים גרנדין לאט בצד הכוס"]},
+  {name:"Singapore Sling",category:"fruity",desc:"מסע טרופי מורכב מהמזרח הרחוק.",difficulty:"hard",sweet:5,sour:3,complex:8,
+    ingredients:[{item:"ג'ין",amount:"30 מ\"ל"},{item:"ליקר דובדבן",amount:"15 מ\"ל"},{item:"בנדיקטין",amount:"7 מ\"ל"},{item:"קוואנטרו",amount:"7 מ\"ל"},{item:"מיץ ליים",amount:"15 מ\"ל"},{item:"מיץ אננס",amount:"60 מ\"ל"},{item:"גרנדין",amount:"10 מ\"ל"},{item:"ביטרס",amount:"דש 1"}],
+    steps:["יוצקים את כל המרכיבים לשייקר עם קרח","מנערים בחוזקה","מסננים לכוס הייבול על קרח","מקשטים באננס ודובדבן"]},
+  {name:"Hurricane",category:"fruity",desc:"סופה טרופית מניו אורלינס.",difficulty:"easy",sweet:7,sour:3,complex:4,
+    ingredients:[{item:"רום לבן",amount:"30 מ\"ל"},{item:"רום כהה",amount:"30 מ\"ל"},{item:"מיץ פסיפלורה",amount:"60 מ\"ל"},{item:"מיץ תפוזים",amount:"30 מ\"ל"},{item:"מיץ ליים",amount:"15 מ\"ל"},{item:"גרנדין",amount:"15 מ\"ל"}],
+    steps:["יוצקים את כל המרכיבים לשייקר עם קרח","מנערים בחוזקה","מסננים לכוס הוריקן על קרח","מקשטים בפרוסת תפוז ודובדבן"]},
+  {name:"Lemon Drop",category:"fruity",desc:"חמוץ-מתוק מושלם עם שפת סוכר.",difficulty:"easy",sweet:5,sour:6,complex:3,
+    ingredients:[{item:"וודקה לימון",amount:"45 מ\"ל"},{item:"מיץ לימון",amount:"22 מ\"ל"},{item:"סירופ פשוט",amount:"15 מ\"ל"}],
+    steps:["מכינים שפת סוכר על כוס מרטיני","יוצקים את כל המרכיבים לשייקר עם קרח","מנערים בחוזקה","מסננים סינון כפול לכוס, מקשטים בגלגל לימון"]},
+  {name:"Blue Lagoon",category:"fruity",desc:"כחול חשמלי — מראה שלא שוכחים.",difficulty:"easy",sweet:6,sour:3,complex:2,
+    ingredients:[{item:"וודקה",amount:"45 מ\"ל"},{item:"בלו קוראסאו",amount:"22 מ\"ל"},{item:"לימונדה",amount:"למילוי"}],
+    steps:["ממלאים כוס הייבול בקרח","יוצקים וודקה ובלו קוראסאו","ממלאים בלימונדה","מערבבים ומקשטים בפרוסת לימון"]}
+];
+
+// ═══════════════════════════════════════
+//  CATEGORY META
+// ═══════════════════════════════════════
+const categories = {
+  strong: { name: "חזק ומר", count: 15 },
+  sweet:  { name: "מתוק וקרמי", count: 11 },
+  sour:   { name: "חמוץ ומרענן", count: 11 },
+  fruity: { name: "פירותי וטרופי", count: 13 }
+};
+
+// ═══════════════════════════════════════
+//  IMAGE CACHE — TheCocktailDB API
+// ═══════════════════════════════════════
+// All 50 cocktail images — hardcoded for instant loading and correct matching
+const cocktailImages = {
+  "Negroni":"https://www.thecocktaildb.com/images/media/drink/qgdu971561574065.jpg",
+  "Old Fashioned":"https://www.thecocktaildb.com/images/media/drink/vrwquq1478252802.jpg",
+  "Manhattan":"https://www.thecocktaildb.com/images/media/drink/yk70e31606771240.jpg",
+  "Sazerac":"https://www.thecocktaildb.com/images/media/drink/vvpxwy1439907208.jpg",
+  "Boulevardier":"https://www.thecocktaildb.com/images/media/drink/km84qi1513705868.jpg",
+  "Rob Roy":"https://www.thecocktaildb.com/images/media/drink/typuyq1439456976.jpg",
+  "Vieux Carré":"https://www.thecocktaildb.com/images/media/drink/b522ek1521761610.jpg",
+  "Black Russian":"https://www.thecocktaildb.com/images/media/drink/8oxlqf1606772765.jpg",
+  "Americano":"https://www.thecocktaildb.com/images/media/drink/709s6m1613655124.jpg",
+  "Toronto":"https://www.thecocktaildb.com/images/media/drink/yqsvtw1478252982.jpg",
+  "Oaxacan Old Fashioned":"https://www.thecocktaildb.com/images/media/drink/vrwquq1478252802.jpg",
+  "Negroni Sbagliato":"https://www.thecocktaildb.com/images/media/drink/j9evx11504373665.jpg",
+  "Paper Plane":"https://www.thecocktaildb.com/images/media/drink/x72sik1606854964.jpg",
+  "Last Word":"https://www.thecocktaildb.com/images/media/drink/91oule1513702624.jpg",
+  "Jungle Bird":"https://www.thecocktaildb.com/images/media/drink/urpyqs1439907531.jpg",
+  "White Russian":"https://www.thecocktaildb.com/images/media/drink/vsrupw1472405732.jpg",
+  "Brandy Alexander":"https://www.thecocktaildb.com/images/media/drink/mlyk1i1606772340.jpg",
+  "Mudslide":"https://www.thecocktaildb.com/images/media/drink/tpwwut1468925017.jpg",
+  "Grasshopper":"https://www.thecocktaildb.com/images/media/drink/aqm9el1504369613.jpg",
+  "Chocolate Martini":"https://www.thecocktaildb.com/images/media/drink/tpwwut1468925017.jpg",
+  "Golden Cadillac":"https://www.thecocktaildb.com/images/media/drink/qrot6j1504369425.jpg",
+  "Pink Squirrel":"https://www.thecocktaildb.com/images/media/drink/t0aja61504348715.jpg",
+  "Toasted Almond":"https://www.thecocktaildb.com/images/media/drink/vr6kle1504886114.jpg",
+  "Bushwacker":"https://www.thecocktaildb.com/images/media/drink/rvwrvv1468877323.jpg",
+  "Baileys Colada":"https://www.thecocktaildb.com/images/media/drink/upgsue1668419912.jpg",
+  "Carajillo":"https://www.thecocktaildb.com/images/media/drink/vqwptt1441247711.jpg",
+  "Margarita":"https://www.thecocktaildb.com/images/media/drink/5noda61589575158.jpg",
+  "Daiquiri":"https://www.thecocktaildb.com/images/media/drink/mrz9091589574515.jpg",
+  "Whiskey Sour":"https://www.thecocktaildb.com/images/media/drink/hbkfsh1589574990.jpg",
+  "Mojito":"https://www.thecocktaildb.com/images/media/drink/metwgh1606770327.jpg",
+  "Tom Collins":"https://www.thecocktaildb.com/images/media/drink/7cll921606854636.jpg",
+  "Gimlet":"https://www.thecocktaildb.com/images/media/drink/3xgldt1513707271.jpg",
+  "French 75":"https://www.thecocktaildb.com/images/media/drink/hrxfbl1606773109.jpg",
+  "Bee's Knees":"https://www.thecocktaildb.com/images/media/drink/3xgldt1513707271.jpg",
+  "Clover Club":"https://www.thecocktaildb.com/images/media/drink/t0aja61504348715.jpg",
+  "Penicillin":"https://www.thecocktaildb.com/images/media/drink/hc9b1a1521853096.jpg",
+  "Amaretto Sour":"https://www.thecocktaildb.com/images/media/drink/xnzc541493070211.jpg",
+  "Espresso Martini":"https://www.thecocktaildb.com/images/media/drink/n0sx531504372951.jpg",
+  "Aperol Spritz":"https://www.thecocktaildb.com/images/media/drink/iloasq1587661955.jpg",
+  "Pina Colada":"https://www.thecocktaildb.com/images/media/drink/upgsue1668419912.jpg",
+  "Mai Tai":"https://www.thecocktaildb.com/images/media/drink/twyrrp1439907470.jpg",
+  "Pornstar Martini":"https://www.thecocktaildb.com/images/media/drink/xjhjdf1630406071.jpg",
+  "Paloma":"https://www.thecocktaildb.com/images/media/drink/samm5j1513706393.jpg",
+  "Cosmopolitan":"https://www.thecocktaildb.com/images/media/drink/kpsajh1504368362.jpg",
+  "Sex on the Beach":"https://www.thecocktaildb.com/images/media/drink/fi67641668420787.jpg",
+  "Tequila Sunrise":"https://www.thecocktaildb.com/images/media/drink/quqyqp1480879103.jpg",
+  "Singapore Sling":"https://www.thecocktaildb.com/images/media/drink/7dozeg1582578095.jpg",
+  "Hurricane":"https://www.thecocktaildb.com/images/media/drink/nwx02s1515795822.jpg",
+  "Lemon Drop":"https://www.thecocktaildb.com/images/media/drink/mtpxgk1504373297.jpg",
+  "Blue Lagoon":"https://www.thecocktaildb.com/images/media/drink/5wm4zo1582579154.jpg"
+};
+
+function loadCardImage(card, cocktailName) {
+  const imgContainer = card.querySelector('.card-img');
+  const url = cocktailImages[cocktailName];
+  if (url) {
+    imgContainer.innerHTML = `<img src="${url}" alt="${cocktailName}" style="width:100%;height:100%;object-fit:cover;display:block"><div class="card-img-overlay"></div>`;
+  }
+}
+
+// ═══════════════════════════════════════
+//  RENDER
+// ═══════════════════════════════════════
+let activeFilter = "all";
+let searchQuery = "";
+
+function renderCocktails() {
+  const main = document.getElementById("mainContent");
+  main.innerHTML = "";
+
+  const filtered = cocktails.filter(c => {
+    const matchCat = activeFilter === "all" || c.category === activeFilter;
+    const q = searchQuery.toLowerCase();
+    const matchSearch = q === "" ||
+      c.name.toLowerCase().includes(q) ||
+      c.desc.toLowerCase().includes(q) ||
+      c.ingredients.some(i => i.item.toLowerCase().includes(q));
+    return matchCat && matchSearch;
+  });
+
+  if (filtered.length === 0) {
+    main.innerHTML = '<div class="no-results" dir="rtl">לא נמצאו קוקטיילים התואמים לחיפוש שלך.</div>';
+    return;
+  }
+
+  const groups = {};
+  filtered.forEach(c => {
+    if (!groups[c.category]) groups[c.category] = [];
+    groups[c.category].push(c);
+  });
+
+  const catOrder = ["strong", "sweet", "sour", "fruity"];
+  catOrder.forEach(cat => {
+    if (!groups[cat]) return;
+    const section = document.createElement("section");
+    section.setAttribute('role', 'region');
+    section.setAttribute('aria-label', categories[cat].name);
+    section.innerHTML = `
+      <div class="section-header">
+        <h2 class="section-title">${categories[cat].name}</h2>
+        <div class="section-count">${groups[cat].length} קוקטיילים</div>
+      </div>
+      <div class="cocktail-grid" id="grid-${cat}"></div>
+    `;
+    main.appendChild(section);
+
+    const grid = section.querySelector(`#grid-${cat}`);
+    groups[cat].forEach((c, i) => {
+      const card = document.createElement("div");
+      card.className = "cocktail-card";
+      card.style.transitionDelay = `${i * 0.06}s`;
+
+      const diffLabel = c.difficulty === "easy" ? "קל" : c.difficulty === "medium" ? "בינוני" : "מאתגר";
+
+      const cardId = `card-${cat}-${i}`;
+      const recipeId = `recipe-${cat}-${i}`;
+      card.setAttribute('role', 'button');
+      card.setAttribute('tabindex', '0');
+      card.setAttribute('aria-expanded', 'false');
+      card.setAttribute('aria-controls', recipeId);
+      card.id = cardId;
+
+      card.innerHTML = `
+        <div class="card-img">
+          <div class="card-img-placeholder">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M8 22h8"/><path d="M12 11v11"/><path d="m19 3-7 8-7-8h14z"/>
+            </svg>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="card-top">
+            <h3 class="card-name">${c.name}</h3>
+            <div class="difficulty ${c.difficulty}">${diffLabel}</div>
+          </div>
+          <div class="card-desc" dir="rtl">${c.desc}</div>
+          <div class="card-ingredients">
+            ${c.ingredients.map(ig => `<span class="ingredient-tag">${ig.item}</span>`).join("")}
+          </div>
+          <div class="card-meters">
+            <div class="meter">
+              <div class="meter-label">מתיקות</div>
+              <div class="meter-bar"><div class="meter-fill" style="--val:${c.sweet * 10}%"></div></div>
+            </div>
+            <div class="meter">
+              <div class="meter-label">חמיצות</div>
+              <div class="meter-bar"><div class="meter-fill" style="--val:${c.sour * 10}%"></div></div>
+            </div>
+            <div class="meter">
+              <div class="meter-label">מורכבות</div>
+              <div class="meter-bar"><div class="meter-fill" style="--val:${c.complex * 10}%"></div></div>
+            </div>
+          </div>
+          <div class="card-recipe" id="${recipeId}">
+            <div class="recipe-section-title">מרכיבים</div>
+            <ul class="recipe-ingredients-list">
+              ${c.ingredients.map(ig => `<li><span>${ig.item}</span><span class="amount">${ig.amount}</span></li>`).join("")}
+            </ul>
+            <div class="recipe-section-title">הכנה</div>
+            <ol class="recipe-steps">
+              ${c.steps.map(s => `<li>${s}</li>`).join("")}
+            </ol>
+          </div>
+        </div>
+        <svg class="card-chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+      `;
+
+      card.addEventListener("click", () => {
+        const wasExpanded = card.classList.contains("expanded");
+        document.querySelectorAll(".cocktail-card.expanded").forEach(el => {
+          el.classList.remove("expanded");
+          el.setAttribute('aria-expanded', 'false');
+        });
+        if (!wasExpanded) {
+          card.classList.add("expanded");
+          card.setAttribute('aria-expanded', 'true');
+          setTimeout(() => {
+            card.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+          }, 350);
+        }
+      });
+
+      card.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          card.click();
+        }
+      });
+
+      grid.appendChild(card);
+      // Load image async
+      loadCardImage(card, c.name);
+    });
+  });
+
+  observeCards();
+}
+
+// ═══════════════════════════════════════
+//  INTERSECTION OBSERVER
+// ═══════════════════════════════════════
+function observeCards() {
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add("visible");
+        entry.target.querySelectorAll(".meter-fill").forEach(fill => {
+          setTimeout(() => fill.classList.add("loaded"), 300);
+        });
+        observer.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.08 });
+
+  document.querySelectorAll(".cocktail-card").forEach(card => observer.observe(card));
+}
+
+// ═══════════════════════════════════════
+//  EVENT LISTENERS
+// ═══════════════════════════════════════
+document.querySelectorAll(".pill").forEach(pill => {
+  pill.addEventListener("click", () => {
+    document.querySelectorAll(".pill").forEach(p => p.classList.remove("active"));
+    pill.classList.add("active");
+    activeFilter = pill.dataset.filter;
+    renderCocktails();
+  });
+});
+
+document.getElementById("searchInput").addEventListener("input", (e) => {
+  searchQuery = e.target.value.trim();
+  renderCocktails();
+});
+
+// Initial render
+renderCocktails();
+</script>
+
+<!-- Back to Top Button -->
+<button class="back-to-top" onclick="window.scrollTo({top:0,behavior:'smooth'})" aria-label="חזרה למעלה">↑</button>
+
+<script>
+// Back-to-top visibility
+const backToTopBtn = document.querySelector('.back-to-top');
+window.addEventListener('scroll', () => {
+  if (window.scrollY > window.innerHeight) {
+    backToTopBtn.classList.add('visible');
+  } else {
+    backToTopBtn.classList.remove('visible');
+  }
+});
+</script>
+</body>
+</html>
