@@ -358,7 +358,10 @@ body{
 }
 @keyframes pulse{0%,100%{opacity:0.4}50%{opacity:0.8}}
 
-.card-body{padding:1.25rem 1.5rem 1.5rem}
+.card-body{
+  padding:1.25rem 1.5rem 2.75rem;
+  position:relative;
+}
 
 .card-top{
   display:flex;justify-content:space-between;
@@ -449,6 +452,7 @@ body{
 .cocktail-card.expanded .card-recipe{
   max-height:800px;
   padding-top:1rem;
+  padding-bottom:0.25rem;
   opacity:1;
 }
 .recipe-section-title{
@@ -483,14 +487,18 @@ body{
 .recipe-steps li{
   font-size:0.85rem;
   color:var(--zinc-400);
-  padding:0.5rem 0 0.5rem 2.2rem;
+  padding-block:0.5rem;
+  padding-inline-start:2.2rem;
+  padding-inline-end:0;
   position:relative;
   counter-increment:step;
   font-weight:300;
 }
 .recipe-steps li::before{
   content:counter(step);
-  position:absolute;left:0;top:0.5rem;
+  position:absolute;
+  inset-inline-start:0;
+  top:0.5rem;
   width:1.4rem;height:1.4rem;
   border-radius:50%;
   background:rgba(200,169,110,0.1);
@@ -578,12 +586,16 @@ button:active,[role="button"]:active{
 
 /* ── Card Expand Chevron ── */
 .card-chevron{
-  position:absolute;bottom:0.75rem;left:50%;
+  position:absolute;
+  bottom:0.65rem;
+  left:50%;
   transform:translateX(-50%);
   width:20px;height:20px;
+  flex-shrink:0;
   color:var(--zinc-600);
   transition:transform 0.3s var(--ease-out-expo),color 0.3s;
-  z-index:2;
+  z-index:3;
+  pointer-events:none;
 }
 .cocktail-card.expanded .card-chevron{transform:translateX(-50%) rotate(180deg);color:var(--gold)}
 
@@ -1004,7 +1016,7 @@ function renderCocktails() {
               ${c.ingredients.map(ig => `<li><span>${ig.item}</span><span class="amount">${ig.amount}</span></li>`).join("")}
             </ul>
             <div class="recipe-section-title">הכנה</div>
-            <ol class="recipe-steps">
+            <ol class="recipe-steps" dir="rtl">
               ${c.steps.map(s => `<li>${s}</li>`).join("")}
             </ol>
           </div>
@@ -1065,12 +1077,22 @@ function observeCards() {
 // ═══════════════════════════════════════
 //  EVENT LISTENERS
 // ═══════════════════════════════════════
+function scrollToCocktailList() {
+  const mainEl = document.getElementById("mainContent");
+  const navEl = document.querySelector(".nav-section");
+  if (!mainEl) return;
+  const navH = navEl ? navEl.offsetHeight : 0;
+  const top = mainEl.getBoundingClientRect().top + window.scrollY - navH - 12;
+  window.scrollTo({ top: Math.max(0, top), behavior: "smooth" });
+}
+
 document.querySelectorAll(".pill").forEach(pill => {
   pill.addEventListener("click", () => {
     document.querySelectorAll(".pill").forEach(p => p.classList.remove("active"));
     pill.classList.add("active");
     activeFilter = pill.dataset.filter;
     renderCocktails();
+    requestAnimationFrame(() => scrollToCocktailList());
   });
 });
 
