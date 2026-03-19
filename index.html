@@ -123,10 +123,11 @@ body{
 .scroll-hint{
   position:absolute;
   bottom:2rem;left:50%;
-  transform:translateX(-50%);
+  transform:translate(-50%, 12px);
   z-index:2;
   display:flex;flex-direction:column;align-items:center;gap:0.5rem;
-  opacity:0;animation:fadeUp 0.8s var(--ease-out-expo) 1.2s forwards;
+  opacity:0;
+  animation:scrollHintIn 0.8s var(--ease-out-expo) 1.2s forwards;
 }
 .scroll-hint span{
   font-size:0.65rem;letter-spacing:0.2em;text-transform:uppercase;
@@ -192,10 +193,11 @@ body{
 .filter-pills{
   display:flex;gap:0.5rem;flex-wrap:wrap;
   align-items:center;justify-content:center;
-  direction:ltr;
+  direction:rtl;
 }
 .pill{
   padding:0.6rem 1.25rem;
+  unicode-bidi:plaintext;
   min-height:44px;
   border-radius:100px;
   border:1px solid var(--zinc-800);
@@ -234,6 +236,9 @@ body{
   width:220px;
   transition:all 0.3s var(--ease-out-expo);
   outline:none;
+  direction:rtl;
+  text-align:right;
+  unicode-bidi:plaintext;
 }
 .search-box input:focus{
   border-color:var(--gold-dim);
@@ -517,6 +522,9 @@ body{
   0%,100%{opacity:0.3;transform:scaleY(0.6)}
   50%{opacity:1;transform:scaleY(1)}
 }
+@keyframes scrollHintIn{
+  to{opacity:1;transform:translate(-50%, 0)}
+}
 
 /* ── No Results ── */
 .no-results{
@@ -532,7 +540,15 @@ body{
 
   .cocktail-grid{grid-template-columns:1fr}
   .nav-inner{flex-direction:column;align-items:center}
-  .filter-pills{overflow-x:auto;flex-wrap:nowrap;padding-bottom:0.5rem;-webkit-overflow-scrolling:touch;justify-content:center;width:90%;max-width:600px}
+  .filter-pills{
+    flex-wrap:wrap;
+    justify-content:center;
+    align-content:center;
+    width:100%;
+    padding-bottom:0;
+    overflow-x:visible;
+    row-gap:0.5rem;
+  }
   .search-box{width:90%;max-width:400px}
   .search-box input{width:100%}
   .search-box input:focus{width:100%}
@@ -637,7 +653,7 @@ body::after{
     </div>
     <div class="search-box">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
-      <input type="text" id="searchInput" placeholder="...חפש קוקטייל" aria-label="חיפוש קוקטייל">
+      <input type="text" id="searchInput" dir="rtl" placeholder="חפש קוקטייל…" aria-label="חיפוש קוקטייל" autocomplete="off">
     </div>
   </div>
 </nav>
