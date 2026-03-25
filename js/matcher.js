@@ -89,29 +89,31 @@ function normalize(str) {
 
 /**
  * Check if a bottle category matches a recipe ingredient name.
- * Uses fuzzy alias matching.
+ * Uses exact alias lookup — no fuzzy substring matching.
  */
 function matchIngredient(bottleCategory, recipeIngredientName) {
   const normBottle = normalize(bottleCategory);
   const normRecipe = normalize(recipeIngredientName);
 
+  // Direct exact match
   if (normBottle === normRecipe) return true;
 
+  // Find canonical group for the bottle
+  let bottleCanonical = null;
   for (const [canonical, aliases] of Object.entries(INGREDIENT_ALIASES)) {
-    const normalizedAliases = aliases.map(a => normalize(a));
-
-    const bottleInGroup = normalizedAliases.some(a =>
-      a === normBottle || a.includes(normBottle) || normBottle.includes(a)
-    ) || normalize(canonical) === normBottle;
-
-    const recipeInGroup = normalizedAliases.some(a =>
-      a === normRecipe || a.includes(normRecipe) || normRecipe.includes(a)
-    );
-
-    if (bottleInGroup && recipeInGroup) return true;
+    if (normalize(canonical) === normBottle ||
+        aliases.some(a => normalize(a) === normBottle)) {
+      bottleCanonical = canonical;
+      break;
+    }
   }
 
-  return false;
+  if (!bottleCanonical) return false;
+
+  // Check if recipe ingredient is in the same canonical group
+  const aliases = INGREDIENT_ALIASES[bottleCanonical];
+  return normalize(bottleCanonical) === normRecipe ||
+         aliases.some(a => normalize(a) === normRecipe);
 }
 
 /**
