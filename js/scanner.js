@@ -394,11 +394,11 @@ function renderResults() {
   const taggedBottles = tagBottlesUsage(identifiedBottles, cocktails);
 
   const bottlesGrid = document.getElementById('bottles-grid');
-  bottlesGrid.innerHTML = taggedBottles.map(b => {
+  bottlesGrid.innerHTML = taggedBottles.map((b, i) => {
     const emoji = getSpiritEmoji(b.category);
     const usedClass = b.usedInRecipes ? 'bottle-used' : 'bottle-unused';
     const confClass = `conf-${b.confidence}`;
-    return `<div class="bottle-chip ${usedClass}">
+    return `<div class="bottle-chip ${usedClass}" data-index="${i}" onclick="toggleBottle(${i})">
       <span class="bottle-emoji">${emoji}</span>
       <div class="bottle-info">
         <span class="bottle-name-he">${b.name_he}</span>
@@ -586,4 +586,50 @@ function showError(message) {
   previewActions.style.display = 'none';
   errorSection.style.display = 'block';
   errorMessage.textContent = message;
+}
+
+/**
+ * Toggle a bottle on/off — excluded bottles don't count for matching.
+ */
+function toggleBottle(index) {
+  const chip = document.querySelector(`.bottle-chip[data-index="${index}"]`);
+  if (!chip) return;
+
+  chip.classList.toggle('excluded');
+
+  // Rebuild identifiedBottles to exclude toggled-off ones
+  const activeBottles = identifiedBottles.filter((_, i) => {
+    const el = document.querySelector(`.bottle-chip[data-index="${i}"]`);
+    return el && !el.classList.contains('excluded');
+  });
+
+  // Re-run matching with only active bottles
+  const { fullMatch, partialMatch } = findCocktailMatches(
+    activeBottles, manualIngredients, cocktails
+  );
+
+  const fullSection = document.getElementById('full-match-section');
+  const partialSection = document.getElementById('partial-match-section');
+  const noMatchesMsg = document.getElementById('no-matches-msg');
+
+  if (fullMatch.length > 0) {
+    fullSection.style.display = 'block';
+    document.getElementById('full-match-count').textContent =
+      `אתה יכול להכין ${fullMatch.length} קוקטיילים!`;
+    document.getElementById('full-match-grid').innerHTML =
+      fullMatch.map((c, i) => cocktailCardHTML(c, i, 'full')).join('');
+  } else {
+    fullSection.style.display = 'none';
+  }
+
+  if (partialMatch.length > 0) {
+    partialSection.style.display = 'block';
+    document.getElementById('partial-match-grid').innerHTML =
+      partialMatch.map((c, i) => cocktailCardHTML(c, i, 'partial')).join('');
+  } else {
+    partialSection.style.display = 'none';
+  }
+
+  noMatchesMsg.style.display =
+    (fullMatch.length === 0 && partialMatch.length === 0) ? 'block' : 'none';
 }
