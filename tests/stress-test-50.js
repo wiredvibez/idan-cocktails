@@ -20,7 +20,7 @@ const TEST_IMAGES = [
   { url: 'https://images.unsplash.com/photo-1546171753-97d7676e4602?w=800', desc: 'Bar shelf assortment', expectMin: 2, category: 'bar-shelf' },
   { url: 'https://images.unsplash.com/photo-1566417713940-fe7c737a9ef2?w=800', desc: 'Backlit bar shelf', expectMin: 2, category: 'bar-shelf' },
   { url: 'https://images.unsplash.com/photo-1597290282695-edc43d0e7129?w=800', desc: 'Liquor store stocked', expectMin: 3, category: 'bar-shelf' },
-  { url: 'https://images.unsplash.com/photo-1583898350903-99fa829dad3a?w=800', desc: 'Bar with neon and bottles', expectMin: 1, category: 'bar-shelf' },
+  { url: 'https://images.unsplash.com/photo-1527281400683-1aae777175f8?w=800', desc: 'Bar with warm lighting', expectMin: 1, category: 'bar-shelf' },
   { url: 'https://images.unsplash.com/photo-1582106245687-cbb466a9f07f?w=800', desc: 'Cocktail bar shelves', expectMin: 3, category: 'bar-shelf' },
   { url: 'https://images.unsplash.com/photo-1470337458703-46ad1756a187?w=800', desc: 'Classic bar setup', expectMin: 2, category: 'bar-shelf' },
 
