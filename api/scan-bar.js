@@ -23,23 +23,55 @@ export default async function handler(req, res) {
     return res.status(500).json({ error: 'Server configuration error' });
   }
 
-  const geminiPrompt = `You are a liquor bottle scanner. Analyze this image systematically:
+  const geminiPrompt = `PROTOCOL: High-Precision Alcohol Audit with Master Recipe Cross-Reference
 
-STEP 1: Scan left-to-right, top-to-bottom. Examine EVERY bottle individually.
-STEP 2: For each bottle, identify the spirit category from its label text, bottle shape, color, and cap.
-STEP 3: Output one entry per unique category found. If you see 3 whiskey bottles, output whiskey once.
+You are auditing a bar photo against a MASTER RECIPE LIST from a cocktail database. Your goal is to identify every bottle that matches an ingredient below.
 
-Category identification guide:
-- Clear liquid + tall bottle = likely vodka or gin (check label)
-- Amber/brown liquid = whiskey, bourbon, scotch, brandy, or cognac
-- Red/orange distinctive bottle = campari or aperol
-- Dark brown squat bottle = kahlua, baileys, amaretto, or liqueur
-- Green bottle with herbs = chartreuse or absinthe
-- White/cream = baileys or coconut rum
+═══ MASTER RECIPE LIST (High-Value Targets) ═══
 
-Valid categories: vodka, gin, whiskey, bourbon, scotch, rum, tequila, mezcal, cognac, campari, aperol, kahlua, baileys, triple_sec, sweet_vermouth, amaretto, chartreuse, absinthe, fernet, bitters, prosecco, liqueur, brandy
+SPIRITS: vodka, gin, bourbon, rye_whiskey, scotch, rum (white), rum (dark), tequila, mezcal, cognac
+LIQUEURS: kahlua, baileys, campari, aperol, triple_sec (Cointreau), amaretto, chartreuse (green), benedictine, maraschino, blue_curacao, galliano, fernet, absinthe, peach_schnapps, passoa, cherry_liqueur, chocolate_liqueur, creme_de_menthe, creme_de_cacao, licor_43
+MODIFIERS: sweet_vermouth, bitters (Angostura), orange_bitters, Peychaud's bitters, grenadine, prosecco
 
-Return ONLY a JSON array: [{"name_en":"Brand or type","name_he":"Hebrew name","category":"category","confidence":"high|medium|low"}]`;
+EXCLUDE from identification: soda, tonic, cola, juices, fresh fruit, ice, sugar, salt, garnishes.
+
+═══ MULTI-PASS VERIFICATION ═══
+
+PASS 1 — OCR: Read text on every label. Even partial text counts (e.g., "...olut" = Absolut Vodka).
+PASS 2 — Silhouette & Branding: Identify by bottle shape, cap color, label color scheme, liquid color:
+  • Clear + tall slim bottle = vodka or gin (check label to distinguish)
+  • Amber/brown + squat = bourbon or whiskey
+  • Amber + tall = scotch or cognac
+  • Red distinctive bottle = Campari (round label) or Aperol (orange gradient)
+  • Dark brown squat = Kahlúa (Aztec art), Baileys (cream label), Amaretto (square)
+  • Green herbal = Chartreuse (bright green) or Absinthe
+  • Cream/white = Baileys or Malibu
+  • Small bottle + dropper = Bitters (Angostura = oversized label)
+  • Tall + distinctive shape = Galliano (yellow tall), Cointreau (orange square)
+  • Bubbly/wire cage = Prosecco or Champagne
+  • Red/brown with Italian text = Sweet Vermouth (Martini Rosso, Carpano)
+PASS 3 — Ambiguity Resolution: If image is blurry/dark, give Top 3 probable matches based on bottle shape + liquid color. Mark confidence accordingly.
+
+═══ BRAND → CATEGORY MAPPING ═══
+
+Absolut/Grey Goose/Smirnoff/Belvedere/Ketel One → vodka
+Bombay/Hendrick's/Tanqueray/Beefeater/Gordon's → gin
+Jack Daniel's/Jim Beam/Maker's Mark/Wild Turkey/Woodford → bourbon
+Johnnie Walker/Glenfiddich/Macallan/Glenlivet/Chivas → scotch
+Bacardi/Havana Club → rum
+Don Julio/Patron/Jose Cuervo/Herradura → tequila
+Hennessy/Rémy Martin/Courvoisier → cognac
+Jägermeister → liqueur (herbal)
+Kahlúa → kahlua | Baileys → baileys | Campari → campari
+Aperol → aperol | Cointreau → triple_sec | Disaronno → amaretto
+Martini Rosso/Carpano → sweet_vermouth | Angostura → bitters
+
+═══ OUTPUT FORMAT ═══
+
+Return ONLY a valid JSON array. One entry per unique category found. No markdown, no explanation.
+[{"name_en":"Brand + Type","name_he":"Hebrew category name","category":"category_key","confidence":"high|medium|low"}]
+
+Category keys: vodka, gin, bourbon, rye_whiskey, scotch, rum, rum_dark, tequila, mezcal, cognac, campari, aperol, kahlua, baileys, triple_sec, sweet_vermouth, amaretto, chartreuse, benedictine, maraschino, blue_curacao, galliano, fernet, absinthe, peach_schnapps, cherry_liqueur, chocolate_liqueur, creme_de_menthe, creme_de_cacao, licor43, bitters, grenadine, prosecco, passoa, liqueur`;
 
   let base64Data = image;
   let mimeType = 'image/jpeg';
@@ -70,7 +102,7 @@ Return ONLY a JSON array: [{"name_en":"Brand or type","name_he":"Hebrew name","c
         temperature: 0.1,
         maxOutputTokens: 16384,
         thinkingConfig: {
-          thinkingBudget: 1024
+          thinkingBudget: 2048
         }
       }
     };
