@@ -93,37 +93,7 @@ CONFIDENCE: "high" = label clearly read. "medium" = identified by shape/brand. "
       generationConfig: {
         temperature: 0.2,
         maxOutputTokens: 8192,
-        responseMimeType: "application/json",
-        responseSchema: {
-          type: "ARRAY",
-          items: {
-            type: "OBJECT",
-            properties: {
-              name_en: { type: "STRING" },
-              name_he: { type: "STRING" },
-              category: {
-                type: "STRING",
-                enum: [
-                  "vodka", "gin", "bourbon", "rye_whiskey", "scotch",
-                  "rum", "rum_dark", "tequila", "mezcal", "cognac",
-                  "campari", "aperol", "kahlua", "baileys", "triple_sec",
-                  "sweet_vermouth", "amaretto", "chartreuse", "benedictine",
-                  "maraschino", "blue_curacao", "galliano", "fernet",
-                  "absinthe", "peach_schnapps", "cherry_liqueur",
-                  "chocolate_liqueur", "creme_de_menthe", "creme_de_cacao",
-                  "licor43", "bitters", "orange_bitters", "grenadine",
-                  "prosecco", "passoa", "liqueur", "syrup", "simple_syrup",
-                  "honey_syrup", "agave_syrup", "raspberry_syrup", "orgeat"
-                ]
-              },
-              confidence: {
-                type: "STRING",
-                enum: ["high", "medium", "low"]
-              }
-            },
-            required: ["name_en", "name_he", "category", "confidence"]
-          }
-        }
+        responseMimeType: "application/json"
       }
     };
 
