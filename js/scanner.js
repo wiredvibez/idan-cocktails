@@ -5,6 +5,7 @@ let currentImageBase64 = null;
 let enhancedImageBase64 = null;
 let identifiedBottles = [];
 let manualIngredients = [];
+let currentFile = null; // store original file for retry
 
 // ─────────────────────────────────────────────────
 // DOM REFS
@@ -31,6 +32,8 @@ const manualTags = document.getElementById('manual-tags');
 
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
 const MAX_DIMENSION = 1920;
+const MAX_DIMENSION_RETRY = 2048;
+const RETRY_THRESHOLD = 3; // retry if fewer bottles found
 
 // ─────────────────────────────────────────────────
 // IMAGE HANDLING
@@ -134,6 +137,58 @@ function enhanceForScanning(canvas, ctx) {
 }
 
 /**
+ * Apply extra boost enhancement for retry scans.
+ * Takes an already-enhanced canvas and pushes brightness/contrast further.
+ */
+function boostEnhancement(canvas, ctx) {
+  const width = canvas.width;
+  const height = canvas.height;
+  const imageData = ctx.getImageData(0, 0, width, height);
+  const data = imageData.data;
+  for (let i = 0; i < data.length; i += 4) {
+    for (let c = 0; c < 3; c++) {
+      let val = data[i + c];
+      val += 30; // extra brightness
+      val = ((val - 128) * 1.2) + 128; // extra contrast
+      data[i + c] = Math.max(0, Math.min(255, Math.round(val)));
+    }
+  }
+  ctx.putImageData(imageData, 0, 0);
+}
+
+/**
+ * Create a boosted retry image: higher resolution + stronger enhancement.
+ */
+function createRetryImage(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const img = new Image();
+      img.onload = () => {
+        let { width, height } = img;
+        if (width > MAX_DIMENSION_RETRY || height > MAX_DIMENSION_RETRY) {
+          const ratio = Math.min(MAX_DIMENSION_RETRY / width, MAX_DIMENSION_RETRY / height);
+          width = Math.round(width * ratio);
+          height = Math.round(height * ratio);
+        }
+        const canvas = document.createElement('canvas');
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, width, height);
+        enhanceForScanning(canvas, ctx);
+        boostEnhancement(canvas, ctx);
+        resolve(canvas.toDataURL('image/jpeg', 0.85));
+      };
+      img.onerror = reject;
+      img.src = e.target.result;
+    };
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+
+/**
  * Resize, convert, and produce two versions:
  * - original base64 for user preview
  * - enhanced base64 for AI scanning
@@ -187,6 +242,7 @@ function handleFile(file) {
     return;
   }
 
+  currentFile = file;
   resizeAndConvert(file).then(({ original, enhanced }) => {
     currentImageBase64 = original;
     enhancedImageBase64 = enhanced;
@@ -248,26 +304,28 @@ async function scanBar() {
   resultsSection.style.display = 'none';
 
   try {
-    const imageToSend = enhancedImageBase64 || currentImageBase64;
-    const base64ForApi = imageToSend.replace(/^data:image\/\w+;base64,/, '');
+    // First scan — use the pre-enhanced image
+    const firstResult = await callScanApi(enhancedImageBase64 || currentImageBase64);
 
-    const response = await fetch('/api/scan-bar', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ image: base64ForApi })
-    });
-
-    if (!response.ok) {
-      throw new Error(`API error: ${response.status}`);
+    if (firstResult.length >= RETRY_THRESHOLD) {
+      // Good result — show immediately
+      identifiedBottles = firstResult;
+    } else if (currentFile) {
+      // Low result — auto-retry with boosted enhancement
+      console.log(`First scan: ${firstResult.length} bottles. Retrying with boost...`);
+      try {
+        const boostedBase64 = await createRetryImage(currentFile);
+        const retryResult = await callScanApi(boostedBase64);
+        // Merge results: keep highest confidence per category
+        identifiedBottles = mergeBottleResults(firstResult, retryResult);
+        console.log(`Retry scan: ${retryResult.length} new. Merged: ${identifiedBottles.length} total.`);
+      } catch (retryErr) {
+        console.warn('Retry failed, using first result:', retryErr);
+        identifiedBottles = firstResult;
+      }
+    } else {
+      identifiedBottles = firstResult;
     }
-
-    const data = await response.json();
-
-    if (data.error) {
-      throw new Error(data.error);
-    }
-
-    identifiedBottles = data.bottles || [];
 
     if (identifiedBottles.length === 0) {
       showError('לא הצלחנו לזהות בקבוקים. נסה תמונה ברורה יותר עם תאורה טובה');
@@ -276,13 +334,54 @@ async function scanBar() {
 
     scanOverlay.style.display = 'none';
     loadingText.style.display = 'none';
-
     renderResults();
 
   } catch (err) {
     console.error('Scan failed:', err);
     showError('משהו השתבש, נסה שוב');
   }
+}
+
+/**
+ * Call the scan API with a base64 image. Returns bottles array.
+ */
+async function callScanApi(imageBase64) {
+  const base64ForApi = imageBase64.replace(/^data:image\/\w+;base64,/, '');
+  const response = await fetch('/api/scan-bar', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ image: base64ForApi })
+  });
+
+  if (!response.ok) {
+    throw new Error(`API error: ${response.status}`);
+  }
+
+  const data = await response.json();
+  if (data.error) {
+    throw new Error(data.error);
+  }
+
+  return data.bottles || [];
+}
+
+/**
+ * Merge two bottle result arrays. Keep highest confidence per category.
+ * If same category appears in both, prefer: high > medium > low.
+ */
+function mergeBottleResults(first, second) {
+  const confRank = { high: 3, medium: 2, low: 1 };
+  const merged = new Map();
+
+  for (const bottle of [...first, ...second]) {
+    const key = bottle.category;
+    const existing = merged.get(key);
+    if (!existing || (confRank[bottle.confidence] || 0) > (confRank[existing.confidence] || 0)) {
+      merged.set(key, bottle);
+    }
+  }
+
+  return Array.from(merged.values());
 }
 
 scanBtn.addEventListener('click', scanBar);
@@ -468,6 +567,7 @@ function resetToUpload() {
   enhancedImageBase64 = null;
   identifiedBottles = [];
   manualIngredients = [];
+  currentFile = null;
   fileInput.value = '';
   cameraInput.value = '';
   uploadZone.style.display = 'flex';
