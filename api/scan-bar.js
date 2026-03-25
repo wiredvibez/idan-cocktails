@@ -23,69 +23,27 @@ export default async function handler(req, res) {
     return res.status(500).json({ error: 'Server configuration error' });
   }
 
-  const geminiPrompt = `PROTOCOL: High-Precision Alcohol Audit with Master Recipe Cross-Reference
+  const geminiPrompt = `You are identifying alcohol bottles in a bar photo for a cocktail recipe matcher.
 
-You are auditing a bar photo against a MASTER RECIPE LIST from a cocktail database. Your goal is to identify every bottle that matches an ingredient below.
+TASK: List every alcohol bottle visible. Return a JSON array.
 
-═══ MASTER RECIPE LIST (High-Value Targets) ═══
+VALID CATEGORIES (use these exact keys):
+vodka, gin, bourbon, rye_whiskey, scotch, rum, rum_dark, tequila, mezcal, cognac, campari, aperol, kahlua, baileys, triple_sec, sweet_vermouth, amaretto, chartreuse, benedictine, maraschino, blue_curacao, galliano, fernet, absinthe, peach_schnapps, cherry_liqueur, chocolate_liqueur, creme_de_menthe, creme_de_cacao, licor43, bitters, orange_bitters, grenadine, prosecco, passoa, liqueur, syrup, simple_syrup, honey_syrup, agave_syrup, raspberry_syrup, orgeat
 
-SPIRITS: vodka, gin, bourbon, rye_whiskey, scotch, rum (white), rum (dark), tequila, mezcal, cognac
-LIQUEURS: kahlua, baileys, campari, aperol, triple_sec (Cointreau), amaretto, chartreuse (green), benedictine, maraschino, blue_curacao, galliano, fernet, absinthe, peach_schnapps, passoa, cherry_liqueur, chocolate_liqueur, creme_de_menthe, creme_de_cacao, licor_43
-MODIFIERS: sweet_vermouth, bitters (Angostura), orange_bitters, Peychaud's bitters, grenadine, prosecco
-SYRUPS & SPECIALTY (IMPORTANT — DO NOT SKIP): Monin syrups (any flavor), simple syrup, honey syrup, agave syrup, orgeat, raspberry syrup, ginger syrup, elderflower syrup
+RULES:
+1. Read label text first. Even partial text counts ("...olut" = Absolut = vodka).
+2. If label is unreadable, identify by bottle shape, liquid color, and cap color.
+3. Monin bottles (tall, colorful fruit illustration on label) = syrup. Specify the flavor in name_en (e.g. "Monin Elderflower Syrup").
+4. IGNORE: water, soda, cola, juice cartons, fresh fruit, ice, salt, sugar, tonic water.
+5. Count all bottles visible. If your list has fewer items than bottles you can see, look again for missed ones.
+6. For dark or blurry images: look for faint label outlines, bottle silhouettes, reflections on glass, and cap colors.
 
-CRITICAL: Monin bottles are HIGH-VALUE TARGETS. They have a distinctive tall bottle with a fruit/flavor illustration on the label. If you see ANY Monin bottle, identify the flavor. If the flavor text is blurry, output "Monin - [Flavor Unclear]" with category "syrup".
+CONFIDENCE:
+- "high" = label text clearly readable
+- "medium" = identified by bottle shape/color/brand recognition
+- "low" = best guess from silhouette only
 
-EXCLUDE from identification: plain water, soda water, tonic water, cola, fresh whole fruit, ice, table salt, table sugar.
-
-═══ MULTI-PASS VERIFICATION ═══
-
-PASS 1 — OCR: Read text on every label. Even partial text counts (e.g., "...olut" = Absolut Vodka).
-PASS 2 — Silhouette & Branding: Identify by bottle shape, cap color, label color scheme, liquid color:
-  • Clear + tall slim bottle = vodka or gin (check label to distinguish)
-  • Amber/brown + squat = bourbon or whiskey
-  • Amber + tall = scotch or cognac
-  • Red distinctive bottle = Campari (round label) or Aperol (orange gradient)
-  • Dark brown squat = Kahlúa (Aztec art), Baileys (cream label), Amaretto (square)
-  • Green herbal = Chartreuse (bright green) or Absinthe
-  • Cream/white = Baileys or Malibu
-  • Small bottle + dropper = Bitters (Angostura = oversized label)
-  • Tall + distinctive shape = Galliano (yellow tall), Cointreau (orange square)
-  • Bubbly/wire cage = Prosecco or Champagne
-  • Red/brown with Italian text = Sweet Vermouth (Martini Rosso, Carpano)
-  • Tall bottle + colorful fruit illustration label + "MONIN" text = Monin syrup (identify the flavor!)
-  • Tall clear/colored bottle with flavor label = specialty syrup (check brand: Monin, Torani, 1883)
-PASS 3 — Low-Light Recovery: The image may have been pre-enhanced from a dark original. Look for:
-  • Faint label outlines and text that appears washed-out (still readable)
-  • Bottle silhouettes against shelves even if labels are unclear
-  • Reflections on glass that reveal bottle shape
-  • Cap colors visible even when labels are dark
-  • If a bottle is clearly alcohol but unreadable, output it as the most likely category with "medium" or "low" confidence
-PASS 4 — Ambiguity Resolution: If image is blurry/dark, give Top 3 probable matches based on bottle shape + liquid color. Mark confidence accordingly.
-PASS 5 — Completeness Check: Count total bottles visible in image. If your output has fewer items than bottles visible, re-scan for missed items (especially syrups, small bottles, and partially hidden ones).
-
-═══ BRAND → CATEGORY MAPPING ═══
-
-Absolut/Grey Goose/Smirnoff/Belvedere/Ketel One → vodka
-Bombay/Hendrick's/Tanqueray/Beefeater/Gordon's → gin
-Jack Daniel's/Jim Beam/Maker's Mark/Wild Turkey/Woodford → bourbon
-Johnnie Walker/Glenfiddich/Macallan/Glenlivet/Chivas → scotch
-Bacardi/Havana Club → rum
-Don Julio/Patron/Jose Cuervo/Herradura → tequila
-Hennessy/Rémy Martin/Courvoisier → cognac
-Jägermeister → liqueur (herbal)
-Kahlúa → kahlua | Baileys → baileys | Campari → campari
-Aperol → aperol | Cointreau → triple_sec | Disaronno → amaretto
-Martini Rosso/Carpano → sweet_vermouth | Angostura → bitters
-Monin → syrup (specify flavor in name_en, e.g., "Monin Elderflower Syrup")
-Torani/1883/DaVinci → syrup (specify flavor)
-
-═══ OUTPUT FORMAT ═══
-
-Return ONLY a valid JSON array. One entry per unique category found. No markdown, no explanation.
-[{"name_en":"Brand + Type","name_he":"Hebrew category name","category":"category_key","confidence":"high|medium|low"}]
-
-Category keys: vodka, gin, bourbon, rye_whiskey, scotch, rum, rum_dark, tequila, mezcal, cognac, campari, aperol, kahlua, baileys, triple_sec, sweet_vermouth, amaretto, chartreuse, benedictine, maraschino, blue_curacao, galliano, fernet, absinthe, peach_schnapps, cherry_liqueur, chocolate_liqueur, creme_de_menthe, creme_de_cacao, licor43, bitters, grenadine, prosecco, passoa, liqueur, syrup, simple_syrup, honey_syrup, agave_syrup, raspberry_syrup, orgeat`;
+Each entry: {"name_en": "Brand + Type", "name_he": "Hebrew category name", "category": "category_key", "confidence": "high|medium|low"}`;
 
   let base64Data = image;
   let mimeType = 'image/jpeg';
@@ -114,9 +72,37 @@ Category keys: vodka, gin, bourbon, rye_whiskey, scotch, rum, rum_dark, tequila,
       }],
       generationConfig: {
         temperature: 0.1,
-        maxOutputTokens: 16384,
-        thinkingConfig: {
-          thinkingBudget: 2048
+        maxOutputTokens: 4096,
+        responseMimeType: "application/json",
+        responseSchema: {
+          type: "ARRAY",
+          items: {
+            type: "OBJECT",
+            properties: {
+              name_en: { type: "STRING" },
+              name_he: { type: "STRING" },
+              category: {
+                type: "STRING",
+                enum: [
+                  "vodka", "gin", "bourbon", "rye_whiskey", "scotch",
+                  "rum", "rum_dark", "tequila", "mezcal", "cognac",
+                  "campari", "aperol", "kahlua", "baileys", "triple_sec",
+                  "sweet_vermouth", "amaretto", "chartreuse", "benedictine",
+                  "maraschino", "blue_curacao", "galliano", "fernet",
+                  "absinthe", "peach_schnapps", "cherry_liqueur",
+                  "chocolate_liqueur", "creme_de_menthe", "creme_de_cacao",
+                  "licor43", "bitters", "orange_bitters", "grenadine",
+                  "prosecco", "passoa", "liqueur", "syrup", "simple_syrup",
+                  "honey_syrup", "agave_syrup", "raspberry_syrup", "orgeat"
+                ]
+              },
+              confidence: {
+                type: "STRING",
+                enum: ["high", "medium", "low"]
+              }
+            },
+            required: ["name_en", "name_he", "category", "confidence"]
+          }
         }
       }
     };
@@ -135,37 +121,20 @@ Category keys: vodka, gin, bourbon, rye_whiskey, scotch, rum, rum_dark, tequila,
 
     const geminiData = await geminiRes.json();
 
-    // Gemini 2.5 with thinking returns multiple parts — find the text part (not thought)
+    // With responseSchema, Gemini returns clean JSON directly
     const parts = geminiData.candidates?.[0]?.content?.parts || [];
-    const textPart = parts.find(p => p.text && !p.thought) || parts.find(p => p.text);
+    const textPart = parts.find(p => p.text);
     const textContent = textPart?.text;
     if (!textContent) {
       return res.status(200).json({ bottles: [] });
     }
 
-    let cleaned = textContent.trim();
-    // Strip markdown code fences
-    if (cleaned.startsWith('```')) {
-      cleaned = cleaned.replace(/^```(?:json)?\n?/, '').replace(/\n?```$/, '');
-    }
-
-    // Extract JSON array even if surrounded by text
     let bottles;
     try {
-      bottles = JSON.parse(cleaned);
+      bottles = JSON.parse(textContent);
     } catch (parseErr) {
-      const arrayMatch = cleaned.match(/\[[\s\S]*\]/);
-      if (arrayMatch) {
-        try {
-          bottles = JSON.parse(arrayMatch[0]);
-        } catch (e) {
-          console.error('Failed to parse extracted JSON:', arrayMatch[0].substring(0, 200));
-          return res.status(200).json({ bottles: [] });
-        }
-      } else {
-        console.error('No JSON array found in response:', cleaned.substring(0, 200));
-        return res.status(200).json({ bottles: [] });
-      }
+      console.error('JSON parse failed despite schema:', textContent.substring(0, 200));
+      return res.status(200).json({ bottles: [] });
     }
 
     if (!Array.isArray(bottles)) {
