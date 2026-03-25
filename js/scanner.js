@@ -255,7 +255,7 @@ function cocktailCardHTML(c, index, matchType) {
   }
 
   return `
-  <article class="scanner-card" style="animation-delay:${index * 30}ms">
+  <article class="scanner-card" onclick="this.classList.toggle('expanded')" style="animation-delay:${index * 30}ms">
     <div class="scanner-card-img-wrap">
       ${imageUrl ? `<img src="${imageUrl}" alt="${c.name}" class="scanner-card-img" loading="lazy">` : '<div class="scanner-card-img-placeholder"></div>'}
       ${badgeHTML}
@@ -270,6 +270,17 @@ function cocktailCardHTML(c, index, matchType) {
       <div class="scanner-card-ingredients">
         ${c.ingredients.map(ig => `<span class="ingredient-tag">${ig.item}</span>`).join('')}
       </div>
+      <div class="scanner-card-recipe">
+        <div class="recipe-title">מרכיבים</div>
+        <ul class="recipe-list">
+          ${c.ingredients.map(ig => `<li><span>${ig.item}</span><span class="recipe-amount">${ig.amount}</span></li>`).join('')}
+        </ul>
+        <div class="recipe-title">הכנה</div>
+        <ol class="recipe-steps">
+          ${c.steps.map(s => `<li>${s}</li>`).join('')}
+        </ol>
+      </div>
+      <svg class="card-chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
     </div>
   </article>`;
 }

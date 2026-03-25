@@ -376,6 +376,54 @@ body{
   white-space:nowrap;
 }
 
+/* ── Expandable Recipe ── */
+.scanner-card-recipe{
+  max-height:0;overflow:hidden;
+  transition:max-height 0.5s var(--ease-out-expo),opacity 0.3s,margin 0.3s;
+  opacity:0;margin-top:0;
+}
+.scanner-card.expanded .scanner-card-recipe{
+  max-height:800px;opacity:1;margin-top:1rem;
+}
+.recipe-title{
+  font-weight:700;font-size:0.85rem;
+  color:var(--gold);margin-bottom:0.5rem;
+  padding-bottom:0.25rem;
+  border-bottom:1px solid rgba(200,169,110,0.15);
+}
+.recipe-list{
+  list-style:none;padding:0;margin:0 0 1rem;
+}
+.recipe-list li{
+  display:flex;justify-content:space-between;align-items:center;
+  padding:0.4rem 0;
+  border-bottom:1px solid rgba(255,255,255,0.03);
+  font-size:0.85rem;color:var(--zinc-300);
+}
+.recipe-amount{
+  color:var(--zinc-500);font-size:0.8rem;
+  direction:ltr;
+}
+.recipe-steps{
+  padding-right:1.25rem;margin:0;
+}
+.recipe-steps li{
+  padding:0.35rem 0;
+  font-size:0.85rem;color:var(--zinc-400);
+  line-height:1.6;
+}
+.card-chevron{
+  width:20px;height:20px;
+  margin:0.5rem auto 0;
+  color:var(--zinc-600);
+  transition:transform 0.4s var(--ease-out-expo),color 0.3s;
+  display:block;
+}
+.scanner-card.expanded .card-chevron{
+  transform:rotate(180deg);
+  color:var(--gold);
+}
+
 /* ── Match Badges ── */
 .match-badge{
   position:absolute;top:12px;right:12px;
