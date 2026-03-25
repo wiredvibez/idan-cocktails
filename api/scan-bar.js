@@ -23,27 +23,47 @@ export default async function handler(req, res) {
     return res.status(500).json({ error: 'Server configuration error' });
   }
 
-  const geminiPrompt = `You are identifying alcohol bottles in a bar photo for a cocktail recipe matcher.
+  const geminiPrompt = `You are identifying alcohol bottles in a bar photo for a cocktail recipe matcher. Be thorough — identify EVERY bottle you can see, even partially visible ones.
 
-TASK: List every alcohol bottle visible. Return a JSON array.
+TASK: List every alcohol bottle visible. Return a JSON array. If you see bottles but can't read labels, still identify them by shape/color with "low" confidence. NEVER return an empty array if bottles are visible.
 
 VALID CATEGORIES (use these exact keys):
 vodka, gin, bourbon, rye_whiskey, scotch, rum, rum_dark, tequila, mezcal, cognac, campari, aperol, kahlua, baileys, triple_sec, sweet_vermouth, amaretto, chartreuse, benedictine, maraschino, blue_curacao, galliano, fernet, absinthe, peach_schnapps, cherry_liqueur, chocolate_liqueur, creme_de_menthe, creme_de_cacao, licor43, bitters, orange_bitters, grenadine, prosecco, passoa, liqueur, syrup, simple_syrup, honey_syrup, agave_syrup, raspberry_syrup, orgeat
 
+BRAND → CATEGORY CHEAT SHEET:
+Absolut/Grey Goose/Smirnoff/Belvedere/Ketel One → vodka
+Bombay/Hendrick's/Tanqueray/Beefeater/Gordon's → gin
+Jack Daniel's/Jim Beam/Maker's Mark/Wild Turkey/Woodford Reserve → bourbon
+Johnnie Walker/Glenfiddich/Macallan/Glenlivet/Chivas/Highland Park → scotch
+Bacardi/Havana Club/Captain Morgan (white) → rum | Captain Morgan (dark)/Kraken/Myers → rum_dark
+Don Julio/Patron/Jose Cuervo/Herradura/Casamigos → tequila
+Hennessy/Rémy Martin/Courvoisier → cognac
+Campari → campari | Aperol → aperol | Kahlúa → kahlua | Baileys → baileys
+Cointreau → triple_sec | Disaronno → amaretto | Jägermeister/Fernet Branca → fernet
+Martini Rosso/Carpano Antica → sweet_vermouth | Angostura → bitters
+Monin/Torani/1883 → syrup (specify flavor)
+
+VISUAL IDENTIFICATION (when labels are unreadable):
+• Clear liquid + tall slim bottle = vodka or gin
+• Amber/brown + squat bottle = bourbon or whiskey
+• Amber + tall elegant = scotch or cognac (Hennessy has distinctive rounded shape)
+• Bright red bottle = Campari | Orange gradient = Aperol
+• Dark brown + Aztec-style label = Kahlúa | Cream-colored = Baileys
+• Small bottle with oversized label = Angostura bitters
+• Tall yellow bottle = Galliano | Orange square bottle = Cointreau
+• Wire cage/foil top = prosecco or champagne
+• Tall bottle + fruit illustration = Monin syrup
+• Green bottle = Chartreuse, Tanqueray, or absinthe
+
 RULES:
 1. Read label text first. Even partial text counts ("...olut" = Absolut = vodka).
-2. If label is unreadable, identify by bottle shape, liquid color, and cap color.
-3. Monin bottles (tall, colorful fruit illustration on label) = syrup. Specify the flavor in name_en (e.g. "Monin Elderflower Syrup").
-4. IGNORE: water, soda, cola, juice cartons, fresh fruit, ice, salt, sugar, tonic water.
-5. Count all bottles visible. If your list has fewer items than bottles you can see, look again for missed ones.
-6. For dark or blurry images: look for faint label outlines, bottle silhouettes, reflections on glass, and cap colors.
+2. If label unreadable, use bottle shape + liquid color + cap color to identify.
+3. IGNORE: water, soda, cola, juice, fresh fruit, ice, salt, sugar, tonic water.
+4. Count all bottles visible. Your output should match the number of alcohol bottles you see.
+5. For dark/blurry images: look for faint outlines, silhouettes, reflections, cap colors.
+6. When unsure between two categories, pick the more likely one with "low" confidence.
 
-CONFIDENCE:
-- "high" = label text clearly readable
-- "medium" = identified by bottle shape/color/brand recognition
-- "low" = best guess from silhouette only
-
-Each entry: {"name_en": "Brand + Type", "name_he": "Hebrew category name", "category": "category_key", "confidence": "high|medium|low"}`;
+CONFIDENCE: "high" = label clearly read. "medium" = identified by shape/brand. "low" = best guess.`;
 
   let base64Data = image;
   let mimeType = 'image/jpeg';
@@ -71,8 +91,8 @@ Each entry: {"name_en": "Brand + Type", "name_he": "Hebrew category name", "cate
         ]
       }],
       generationConfig: {
-        temperature: 0.1,
-        maxOutputTokens: 4096,
+        temperature: 0.2,
+        maxOutputTokens: 8192,
         responseMimeType: "application/json",
         responseSchema: {
           type: "ARRAY",
@@ -121,11 +141,12 @@ Each entry: {"name_en": "Brand + Type", "name_he": "Hebrew category name", "cate
 
     const geminiData = await geminiRes.json();
 
-    // With responseSchema, Gemini returns clean JSON directly
+    // With responseSchema, Gemini should return clean JSON
     const parts = geminiData.candidates?.[0]?.content?.parts || [];
-    const textPart = parts.find(p => p.text);
+    const textPart = parts.find(p => p.text && !p.thought) || parts.find(p => p.text);
     const textContent = textPart?.text;
     if (!textContent) {
+      console.error('No text in Gemini response. Parts:', JSON.stringify(parts.map(p => Object.keys(p))));
       return res.status(200).json({ bottles: [] });
     }
 
@@ -133,8 +154,23 @@ Each entry: {"name_en": "Brand + Type", "name_he": "Hebrew category name", "cate
     try {
       bottles = JSON.parse(textContent);
     } catch (parseErr) {
-      console.error('JSON parse failed despite schema:', textContent.substring(0, 200));
-      return res.status(200).json({ bottles: [] });
+      // Fallback: try to extract JSON array from response
+      let cleaned = textContent.trim();
+      if (cleaned.startsWith('```')) {
+        cleaned = cleaned.replace(/^```(?:json)?\n?/, '').replace(/\n?```$/, '');
+      }
+      const arrayMatch = cleaned.match(/\[[\s\S]*\]/);
+      if (arrayMatch) {
+        try {
+          bottles = JSON.parse(arrayMatch[0]);
+        } catch (e) {
+          console.error('Fallback parse failed:', cleaned.substring(0, 200));
+          return res.status(200).json({ bottles: [] });
+        }
+      } else {
+        console.error('No JSON array found:', cleaned.substring(0, 200));
+        return res.status(200).json({ bottles: [] });
+      }
     }
 
     if (!Array.isArray(bottles)) {
