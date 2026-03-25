@@ -32,8 +32,11 @@ You are auditing a bar photo against a MASTER RECIPE LIST from a cocktail databa
 SPIRITS: vodka, gin, bourbon, rye_whiskey, scotch, rum (white), rum (dark), tequila, mezcal, cognac
 LIQUEURS: kahlua, baileys, campari, aperol, triple_sec (Cointreau), amaretto, chartreuse (green), benedictine, maraschino, blue_curacao, galliano, fernet, absinthe, peach_schnapps, passoa, cherry_liqueur, chocolate_liqueur, creme_de_menthe, creme_de_cacao, licor_43
 MODIFIERS: sweet_vermouth, bitters (Angostura), orange_bitters, Peychaud's bitters, grenadine, prosecco
+SYRUPS & SPECIALTY (IMPORTANT — DO NOT SKIP): Monin syrups (any flavor), simple syrup, honey syrup, agave syrup, orgeat, raspberry syrup, ginger syrup, elderflower syrup
 
-EXCLUDE from identification: soda, tonic, cola, juices, fresh fruit, ice, sugar, salt, garnishes.
+CRITICAL: Monin bottles are HIGH-VALUE TARGETS. They have a distinctive tall bottle with a fruit/flavor illustration on the label. If you see ANY Monin bottle, identify the flavor. If the flavor text is blurry, output "Monin - [Flavor Unclear]" with category "syrup".
+
+EXCLUDE from identification: plain water, soda water, tonic water, cola, fresh whole fruit, ice, table salt, table sugar.
 
 ═══ MULTI-PASS VERIFICATION ═══
 
@@ -50,7 +53,10 @@ PASS 2 — Silhouette & Branding: Identify by bottle shape, cap color, label col
   • Tall + distinctive shape = Galliano (yellow tall), Cointreau (orange square)
   • Bubbly/wire cage = Prosecco or Champagne
   • Red/brown with Italian text = Sweet Vermouth (Martini Rosso, Carpano)
+  • Tall bottle + colorful fruit illustration label + "MONIN" text = Monin syrup (identify the flavor!)
+  • Tall clear/colored bottle with flavor label = specialty syrup (check brand: Monin, Torani, 1883)
 PASS 3 — Ambiguity Resolution: If image is blurry/dark, give Top 3 probable matches based on bottle shape + liquid color. Mark confidence accordingly.
+PASS 4 — Completeness Check: Count total bottles visible in image. If your output has fewer items than bottles visible, re-scan for missed items (especially syrups, small bottles, and partially hidden ones).
 
 ═══ BRAND → CATEGORY MAPPING ═══
 
@@ -65,13 +71,15 @@ Jägermeister → liqueur (herbal)
 Kahlúa → kahlua | Baileys → baileys | Campari → campari
 Aperol → aperol | Cointreau → triple_sec | Disaronno → amaretto
 Martini Rosso/Carpano → sweet_vermouth | Angostura → bitters
+Monin → syrup (specify flavor in name_en, e.g., "Monin Elderflower Syrup")
+Torani/1883/DaVinci → syrup (specify flavor)
 
 ═══ OUTPUT FORMAT ═══
 
 Return ONLY a valid JSON array. One entry per unique category found. No markdown, no explanation.
 [{"name_en":"Brand + Type","name_he":"Hebrew category name","category":"category_key","confidence":"high|medium|low"}]
 
-Category keys: vodka, gin, bourbon, rye_whiskey, scotch, rum, rum_dark, tequila, mezcal, cognac, campari, aperol, kahlua, baileys, triple_sec, sweet_vermouth, amaretto, chartreuse, benedictine, maraschino, blue_curacao, galliano, fernet, absinthe, peach_schnapps, cherry_liqueur, chocolate_liqueur, creme_de_menthe, creme_de_cacao, licor43, bitters, grenadine, prosecco, passoa, liqueur`;
+Category keys: vodka, gin, bourbon, rye_whiskey, scotch, rum, rum_dark, tequila, mezcal, cognac, campari, aperol, kahlua, baileys, triple_sec, sweet_vermouth, amaretto, chartreuse, benedictine, maraschino, blue_curacao, galliano, fernet, absinthe, peach_schnapps, cherry_liqueur, chocolate_liqueur, creme_de_menthe, creme_de_cacao, licor43, bitters, grenadine, prosecco, passoa, liqueur, syrup, simple_syrup, honey_syrup, agave_syrup, raspberry_syrup, orgeat`;
 
   let base64Data = image;
   let mimeType = 'image/jpeg';
