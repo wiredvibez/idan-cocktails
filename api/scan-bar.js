@@ -55,8 +55,14 @@ PASS 2 — Silhouette & Branding: Identify by bottle shape, cap color, label col
   • Red/brown with Italian text = Sweet Vermouth (Martini Rosso, Carpano)
   • Tall bottle + colorful fruit illustration label + "MONIN" text = Monin syrup (identify the flavor!)
   • Tall clear/colored bottle with flavor label = specialty syrup (check brand: Monin, Torani, 1883)
-PASS 3 — Ambiguity Resolution: If image is blurry/dark, give Top 3 probable matches based on bottle shape + liquid color. Mark confidence accordingly.
-PASS 4 — Completeness Check: Count total bottles visible in image. If your output has fewer items than bottles visible, re-scan for missed items (especially syrups, small bottles, and partially hidden ones).
+PASS 3 — Low-Light Recovery: The image may have been pre-enhanced from a dark original. Look for:
+  • Faint label outlines and text that appears washed-out (still readable)
+  • Bottle silhouettes against shelves even if labels are unclear
+  • Reflections on glass that reveal bottle shape
+  • Cap colors visible even when labels are dark
+  • If a bottle is clearly alcohol but unreadable, output it as the most likely category with "medium" or "low" confidence
+PASS 4 — Ambiguity Resolution: If image is blurry/dark, give Top 3 probable matches based on bottle shape + liquid color. Mark confidence accordingly.
+PASS 5 — Completeness Check: Count total bottles visible in image. If your output has fewer items than bottles visible, re-scan for missed items (especially syrups, small bottles, and partially hidden ones).
 
 ═══ BRAND → CATEGORY MAPPING ═══
 

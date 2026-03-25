@@ -2,6 +2,7 @@
 // SCANNER STATE
 // ─────────────────────────────────────────────────
 let currentImageBase64 = null;
+let enhancedImageBase64 = null;
 let identifiedBottles = [];
 let manualIngredients = [];
 
@@ -35,6 +36,108 @@ const MAX_DIMENSION = 1920;
 // IMAGE HANDLING
 // ─────────────────────────────────────────────────
 
+/**
+ * Measure average brightness of a canvas (0-255).
+ * Samples every 10th pixel for speed.
+ */
+function measureBrightness(ctx, width, height) {
+  const imageData = ctx.getImageData(0, 0, width, height);
+  const data = imageData.data;
+  let totalLuminance = 0;
+  let count = 0;
+  for (let i = 0; i < data.length; i += 40) { // every 10th pixel (4 channels * 10)
+    const r = data[i], g = data[i + 1], b = data[i + 2];
+    totalLuminance += 0.299 * r + 0.587 * g + 0.114 * b;
+    count++;
+  }
+  return totalLuminance / count;
+}
+
+/**
+ * Enhance a dark/medium image for better AI scanning.
+ * Applies brightness, contrast, gamma correction, and sharpening.
+ * Modifies the canvas in-place.
+ */
+function enhanceForScanning(canvas, ctx) {
+  const width = canvas.width;
+  const height = canvas.height;
+  const avgBrightness = measureBrightness(ctx, width, height);
+
+  let brightnessBoost = 0;
+  let contrastFactor = 1.0;
+  let gammaCorrection = 1.0;
+
+  if (avgBrightness < 80) {
+    // Very dark — aggressive enhancement
+    brightnessBoost = 60;
+    contrastFactor = 1.5;
+    gammaCorrection = 0.6;
+  } else if (avgBrightness < 120) {
+    // Dark — moderate enhancement
+    brightnessBoost = 40;
+    contrastFactor = 1.3;
+    gammaCorrection = 0.75;
+  } else if (avgBrightness < 160) {
+    // Medium — light touch
+    brightnessBoost = 15;
+    contrastFactor = 1.15;
+    gammaCorrection = 0.9;
+  } else {
+    // Bright — only sharpen, no brightness change
+    gammaCorrection = 1.0;
+  }
+
+  // Apply brightness, contrast, and gamma
+  if (brightnessBoost > 0 || contrastFactor !== 1.0 || gammaCorrection !== 1.0) {
+    const imageData = ctx.getImageData(0, 0, width, height);
+    const data = imageData.data;
+    for (let i = 0; i < data.length; i += 4) {
+      for (let c = 0; c < 3; c++) {
+        let val = data[i + c];
+        // Gamma correction (brightens shadows without blowing highlights)
+        val = 255 * Math.pow(val / 255, gammaCorrection);
+        // Brightness
+        val += brightnessBoost;
+        // Contrast (around midpoint 128)
+        val = ((val - 128) * contrastFactor) + 128;
+        data[i + c] = Math.max(0, Math.min(255, Math.round(val)));
+      }
+    }
+    ctx.putImageData(imageData, 0, 0);
+  }
+
+  // Apply mild sharpen using unsharp mask technique
+  // Draw slightly blurred version, then blend with original
+  const tempCanvas = document.createElement('canvas');
+  tempCanvas.width = width;
+  tempCanvas.height = height;
+  const tempCtx = tempCanvas.getContext('2d');
+  tempCtx.drawImage(canvas, 0, 0);
+
+  // Apply sharpening via contrast with a slightly blurred copy
+  ctx.globalAlpha = 0.3;
+  ctx.filter = 'blur(1px)';
+  ctx.globalCompositeOperation = 'difference';
+  ctx.drawImage(tempCanvas, 0, 0);
+  ctx.globalCompositeOperation = 'source-over';
+  ctx.filter = 'none';
+  ctx.globalAlpha = 1.0;
+
+  // Simpler approach: use CSS filter-based sharpening
+  // Reset and use contrast boost for perceived sharpness
+  ctx.drawImage(tempCanvas, 0, 0);
+  ctx.filter = 'contrast(1.05) saturate(1.1)';
+  ctx.globalAlpha = 0.5;
+  ctx.drawImage(tempCanvas, 0, 0);
+  ctx.filter = 'none';
+  ctx.globalAlpha = 1.0;
+}
+
+/**
+ * Resize, convert, and produce two versions:
+ * - original base64 for user preview
+ * - enhanced base64 for AI scanning
+ */
 function resizeAndConvert(file) {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
@@ -47,13 +150,24 @@ function resizeAndConvert(file) {
           width = Math.round(width * ratio);
           height = Math.round(height * ratio);
         }
+        // Original for preview
         const canvas = document.createElement('canvas');
         canvas.width = width;
         canvas.height = height;
         const ctx = canvas.getContext('2d');
         ctx.drawImage(img, 0, 0, width, height);
-        const base64 = canvas.toDataURL('image/jpeg', 0.85);
-        resolve(base64);
+        const originalBase64 = canvas.toDataURL('image/jpeg', 0.85);
+
+        // Enhanced for AI scanning
+        const scanCanvas = document.createElement('canvas');
+        scanCanvas.width = width;
+        scanCanvas.height = height;
+        const scanCtx = scanCanvas.getContext('2d');
+        scanCtx.drawImage(img, 0, 0, width, height);
+        enhanceForScanning(scanCanvas, scanCtx);
+        const enhancedBase64 = scanCanvas.toDataURL('image/jpeg', 0.85);
+
+        resolve({ original: originalBase64, enhanced: enhancedBase64 });
       };
       img.onerror = reject;
       img.src = e.target.result;
@@ -73,9 +187,10 @@ function handleFile(file) {
     return;
   }
 
-  resizeAndConvert(file).then(base64 => {
-    currentImageBase64 = base64;
-    previewImg.src = base64;
+  resizeAndConvert(file).then(({ original, enhanced }) => {
+    currentImageBase64 = original;
+    enhancedImageBase64 = enhanced;
+    previewImg.src = original;
     uploadZone.style.display = 'none';
     previewSection.style.display = 'block';
     previewActions.style.display = 'flex';
@@ -133,7 +248,8 @@ async function scanBar() {
   resultsSection.style.display = 'none';
 
   try {
-    const base64ForApi = currentImageBase64.replace(/^data:image\/\w+;base64,/, '');
+    const imageToSend = enhancedImageBase64 || currentImageBase64;
+    const base64ForApi = imageToSend.replace(/^data:image\/\w+;base64,/, '');
 
     const response = await fetch('/api/scan-bar', {
       method: 'POST',
@@ -349,6 +465,7 @@ retryBtn.addEventListener('click', () => {
 
 function resetToUpload() {
   currentImageBase64 = null;
+  enhancedImageBase64 = null;
   identifiedBottles = [];
   manualIngredients = [];
   fileInput.value = '';
