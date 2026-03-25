@@ -1,0 +1,7 @@
+{
+  "functions": {
+    "api/scan-bar.js": {
+      "maxDuration": 30
+    }
+  }
+}
