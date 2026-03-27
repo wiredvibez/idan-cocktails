@@ -8,66 +8,121 @@ const STORE_ICONS = {
   convenience_store: '🏪'
 };
 
-// Estimated Israeli market prices (₪) for cocktail ingredients
+// Israeli market prices (₪) based on real Shufersal/Victory/Cheapersal data (2026)
+// Baseline = Shufersal/Victory average price for 700ml bottles
 const INGREDIENT_PRICES = {
-  // Spirits (750ml bottles)
-  'ג\'ין': 90, 'gin': 90, 'vodka': 85, 'וודקה': 85,
-  'בורבון': 120, 'bourbon': 120, 'וויסקי ריי': 130, 'rye whiskey': 130,
-  'סקוטש': 150, 'scotch': 150, 'רום': 80, 'rum': 80, 'רום כהה': 85,
-  'טקילה': 110, 'tequila': 110, 'מזקל': 140, 'mezcal': 140,
-  'קוניאק': 160, 'cognac': 160, 'אבסינת': 130,
-  // Liqueurs
-  'קמפרי': 85, 'campari': 85, 'אפרול': 80, 'aperol': 80,
-  'קהלואה': 75, 'kahlua': 75, 'בייליס': 70, 'baileys': 70,
-  'קואנטרו': 80, 'triple sec': 60, 'טריפל סק': 60,
-  'אמרטו': 70, 'דיסארונו': 70, 'שארטרז': 140,
-  'ורמוט מתוק': 55, 'sweet vermouth': 55, 'ורמוט יבש': 55,
-  'מרשקינו': 90, 'בנדיקטין': 110, 'גליאנו': 95,
-  'בלו קוראסאו': 55, 'פרנה': 80, 'פסואה': 65,
-  'ליקר אפרסק': 50, 'ליקר דובדבן': 50, 'ליקר שוקולד': 55,
-  'קרם דה מנט': 50, 'קרם דה קקאו': 50, 'ליקור 43': 85,
+  // Spirits (700ml bottles — real supermarket prices)
+  'ג\'ין': 110, 'gin': 110,                    // Bombay Sapphire ~₪100-120
+  'vodka': 65, 'וודקה': 65,                    // Absolut ~₪60-75
+  'בורבון': 100, 'bourbon': 100,               // Jim Beam ~₪90, Maker's Mark ~₪130
+  'וויסקי ריי': 120, 'rye whiskey': 120,       // Bulleit Rye ~₪120
+  'סקוטש': 130, 'scotch': 130,                 // Johnnie Walker Red ~₪100, Black ~₪160
+  'רום': 70, 'rum': 70,                        // Bacardi ~₪65-80
+  'רום כהה': 75, 'rum_dark': 75,               // Captain Morgan ~₪70-80
+  'טקילה': 100, 'tequila': 100,                // Jose Cuervo ~₪90, Patron ~₪200
+  'מזקל': 150, 'mezcal': 150,                  // Hard to find in Israel
+  'קוניאק': 140, 'cognac': 140,                // Hennessy VS ~₪140
+  'אבסינת': 120, 'absinthe': 120,
+  // Liqueurs (real prices)
+  'קמפרי': 100, 'campari': 100,                // Campari 1L ~₪99-110
+  'אפרול': 90, 'aperol': 90,                   // Aperol ~₪85-95
+  'קהלואה': 80, 'kahlua': 80,                  // Kahlúa ~₪75-85
+  'בייליס': 75, 'baileys': 75,                 // Baileys ~₪70-80
+  'קואנטרו': 90, 'triple sec': 50, 'טריפל סק': 50, // Cointreau ~₪90, generic triple sec ~₪50
+  'אמרטו': 80, 'דיסארונו': 80, 'amaretto': 80,// Disaronno ~₪80
+  'שארטרז': 160, 'chartreuse': 160,            // Chartreuse ~₪150-170
+  'ורמוט מתוק': 50, 'sweet vermouth': 50,      // Martini Rosso ~₪45-55
+  'ורמוט יבש': 50,
+  'מרשקינו': 100, 'maraschino': 100,           // Luxardo ~₪95-110
+  'בנדיקטין': 120, 'benedictine': 120,
+  'גליאנו': 100, 'galliano': 100,
+  'בלו קוראסאו': 55, 'blue_curacao': 55,
+  'פרנה': 85, 'fernet': 85,                    // Fernet Branca ~₪80-90
+  'פסואה': 70, 'passoa': 70,
+  'ליקר אפרסק': 50, 'peach_schnapps': 50,
+  'ליקר דובדבן': 55, 'cherry_liqueur': 55,
+  'ליקר שוקולד': 55, 'chocolate_liqueur': 55,
+  'קרם דה מנט': 50, 'creme_de_menthe': 50,
+  'קרם דה קקאו': 50, 'creme_de_cacao': 50,
+  'ליקור 43': 90, 'licor43': 90,
   // Bitters & syrups
-  'אנגוסטורה ביטרס': 45, 'ביטרס': 45, 'ביטרס תפוז': 50,
-  'גרנדין': 25, 'סירופ פשוט': 15, 'סירופ': 20,
-  'דבש': 15, 'אורגיט': 35, 'סירופ פטל': 25, 'אגבה': 20,
+  'אנגוסטורה ביטרס': 50, 'ביטרס': 50, 'bitters': 50, // Angostura ~₪45-55
+  'ביטרס תפוז': 55, 'orange_bitters': 55,
+  'גרנדין': 20, 'grenadine': 20,               // Monin grenadine ~₪20
+  'סירופ פשוט': 12, 'simple_syrup': 12,        // Homemade or Monin ~₪12-20
+  'סירופ': 18, 'syrup': 18,
+  'דבש': 12, 'honey_syrup': 12,
+  'אורגיט': 35, 'orgeat': 35,
+  'סירופ פטל': 22, 'raspberry_syrup': 22,
+  'אגבה': 18, 'agave_syrup': 18,
   // Mixers & fresh
-  'פרוסקו': 40, 'prosecco': 40, 'סודה': 5,
-  'לימון': 3, 'ליים': 5, 'מיץ ליים': 8, 'מיץ לימון': 8,
+  'פרוסקו': 35, 'prosecco': 35,                // Shufersal prosecco ~₪30-40
+  'סודה': 5, 'soda': 5,
+  'לימון': 2, 'ליים': 4, 'מיץ ליים': 8, 'מיץ לימון': 8,
   'מיץ תפוזים': 10, 'מיץ אננס': 12, 'מיץ חמוציות': 15,
-  'קוביית סוכר': 5, 'סוכר': 5,
+  'קוביית סוכר': 3, 'סוכר': 3,
   'ביצה': 3, 'לבן ביצה': 3,
   'שמנת': 10, 'חלב קוקוס': 12,
-  'אספרסו': 8, 'קפה': 8,
+  'אספרסו': 5, 'קפה': 5,
   'גלידת וניל': 15,
   'מים': 0, 'קרח': 0,
-  // Peychaud's, etc
-  'ביטרס פישו': 55,
-  'אבסינת (שטיפה)': 5, // tiny amount
+  'ביטרס פישו': 60,
+  'אבסינת (שטיפה)': 5,
 };
 
-// Price multipliers by store type
+// Store name → type mapping (Google often misclassifies Israeli stores)
+const STORE_TYPE_OVERRIDES = {
+  'am:pm': 'convenience_store', 'am pm': 'convenience_store', 'ampm': 'convenience_store',
+  'yellow': 'convenience_store', 'ילו': 'convenience_store',
+  'tiv taam': 'premium_supermarket', 'טיב טעם': 'premium_supermarket',
+  'tiv taam in the city': 'premium_supermarket',
+  'shufersal': 'supermarket', 'שופרסל': 'supermarket',
+  'victory': 'supermarket', 'ויקטורי': 'supermarket',
+  'rami levy': 'discount_supermarket', 'רמי לוי': 'discount_supermarket',
+  'osher ad': 'discount_supermarket', 'אושר עד': 'discount_supermarket',
+  'mega': 'supermarket', 'מגה': 'supermarket',
+};
+
+// Price multipliers by store type (based on real Israeli price differences)
 const PRICE_MULTIPLIER = {
-  liquor_store: 0.95,      // Liquor stores: slightly cheaper for alcohol
-  supermarket: 1.0,         // Baseline
-  convenience_store: 1.25   // AM:PM etc: ~25% markup
+  liquor_store: 0.90,          // Dedicated liquor stores: ~10% cheaper
+  discount_supermarket: 0.92,  // Rami Levy, Osher Ad: cheapest
+  supermarket: 1.0,            // Shufersal, Victory: baseline
+  premium_supermarket: 1.12,   // Tiv Taam: ~12% markup
+  convenience_store: 1.25      // AM:PM, Yellow: ~25% markup
 };
 
-// Estimate basket cost for ingredients at a given store type
-function estimateBasketCost(ingredients, storeType) {
+// Determine real store type from name (Google often misclassifies Israeli stores)
+function getStoreType(storeName, googleType) {
+  const nameLower = (storeName || '').toLowerCase();
+  for (const [pattern, type] of Object.entries(STORE_TYPE_OVERRIDES)) {
+    if (nameLower.includes(pattern)) return type;
+  }
+  return googleType || 'supermarket';
+}
+
+// Estimate basket cost for ingredients at a given store
+function estimateBasketCost(ingredients, storeName, googleStoreType) {
   let total = 0;
-  const multiplier = PRICE_MULTIPLIER[storeType] || 1.0;
+  const realType = getStoreType(storeName, googleStoreType);
+  const multiplier = PRICE_MULTIPLIER[realType] || 1.0;
   for (const ing of ingredients) {
-    const name = ing.item?.toLowerCase() || '';
+    const name = (ing.item || '').toLowerCase().trim();
     let price = 0;
-    // Try exact match first
+    // Try exact match first, then partial
     for (const [key, val] of Object.entries(INGREDIENT_PRICES)) {
-      if (name === key.toLowerCase() || name.includes(key.toLowerCase()) || key.toLowerCase().includes(name)) {
-        price = val;
-        break;
+      const keyLower = key.toLowerCase();
+      if (name === keyLower) { price = val; break; }
+    }
+    // Partial match if no exact
+    if (price === 0) {
+      for (const [key, val] of Object.entries(INGREDIENT_PRICES)) {
+        const keyLower = key.toLowerCase();
+        if (name.includes(keyLower) || keyLower.includes(name)) { price = val; break; }
       }
     }
-    // Default: small cost for unknown ingredients (garnishes, etc)
-    if (price === 0) price = 5;
+    // Default: small cost for garnishes/unknown
+    if (price === 0) price = 3;
     total += price;
   }
   return Math.round(total * multiplier);
@@ -169,7 +224,7 @@ function renderStores(stores, container, ingredients) {
   }
 
   container.innerHTML = stores.map(store => {
-    const cost = ingredients ? estimateBasketCost(ingredients, store.storeType) : null;
+    const cost = ingredients ? estimateBasketCost(ingredients, store.name, store.storeType) : null;
     return `
     <div class="radar-store">
       <div class="radar-store-header">
