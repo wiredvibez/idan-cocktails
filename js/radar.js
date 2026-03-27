@@ -280,18 +280,7 @@ async function findNearbyStores(btn, cocktailName, ingredients) {
     const stores = await fetchNearbyStores(lat, lng);
     renderStores(stores, container, ingredients);
 
-    // Add shopping list buttons
-    const actionsDiv = document.createElement('div');
-    actionsDiv.className = 'radar-actions';
-    actionsDiv.innerHTML = `
-      <button class="radar-action-btn radar-copy-btn" onclick="copyShoppingList('${cocktailName.replace(/'/g, "\\'")}', ${JSON.stringify(ingredients).replace(/"/g, '&quot;')}, this)">
-        📋 העתק רשימת קניות
-      </button>
-      <button class="radar-action-btn radar-whatsapp-btn" onclick="shareWhatsApp('${cocktailName.replace(/'/g, "\\'")}', ${JSON.stringify(ingredients).replace(/"/g, '&quot;')})">
-        📱 שלח בוואטסאפ
-      </button>
-    `;
-    container.appendChild(actionsDiv);
+    // Actions removed per user request
 
   } catch (err) {
     container.innerHTML = `
