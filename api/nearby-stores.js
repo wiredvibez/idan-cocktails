@@ -23,7 +23,7 @@ export default async function handler(req, res) {
 
     const body = {
       includedTypes: ['liquor_store', 'supermarket', 'convenience_store'],
-      maxResultCount: 10,
+      maxResultCount: 15,
       locationRestriction: {
         circle: {
           center: { latitude: lat, longitude: lng },
@@ -49,7 +49,14 @@ export default async function handler(req, res) {
     }
 
     const data = await placesRes.json();
-    const places = data.places || [];
+    const allPlaces = data.places || [];
+
+    // Filter out bars, cafes, restaurants — we only want actual stores
+    const EXCLUDE_TYPES = ['bar', 'cafe', 'coffee_shop', 'restaurant', 'night_club', 'meal_delivery', 'meal_takeaway'];
+    const places = allPlaces.filter(place => {
+      const types = place.types || [];
+      return !types.some(t => EXCLUDE_TYPES.includes(t));
+    });
 
     // Calculate distance and format results
     const stores = places.map(place => {
