@@ -277,6 +277,7 @@ body{
   grid-template-columns:repeat(auto-fill,minmax(340px,1fr));
   gap:1.25rem;
   margin-bottom:3rem;
+  align-items:start;
 }
 /* All cards uniform size */
 
@@ -442,7 +443,7 @@ body{
   opacity:0;
 }
 .cocktail-card.expanded .card-recipe{
-  max-height:800px;
+  max-height:1500px;
   padding-top:1rem;
   opacity:1;
 }
@@ -603,6 +604,145 @@ body::after{
   background-repeat:repeat;
   background-size:256px 256px;
 }
+
+/* ── Mixologist's Radar ── */
+.radar-section{
+  margin-top:1rem;
+  padding-top:1rem;
+  border-top:1px solid var(--zinc-800);
+}
+.radar-btn{
+  width:100%;
+  padding:12px 20px;
+  background:transparent;
+  border:1.5px solid var(--gold);
+  color:var(--gold);
+  border-radius:var(--radius-lg);
+  font-family:var(--font-body);
+  font-size:0.95rem;
+  font-weight:600;
+  cursor:pointer;
+  transition:all 0.3s ease;
+  direction:rtl;
+}
+.radar-btn:hover{
+  background:rgba(200,169,110,0.12);
+  transform:translateY(-1px);
+}
+.radar-btn.active{
+  background:rgba(200,169,110,0.15);
+  border-color:var(--gold);
+}
+.radar-results{
+  margin-top:12px;
+  border-radius:var(--radius-lg);
+  background:rgba(0,0,0,0.3);
+  overflow:hidden;
+}
+.radar-store{
+  padding:12px 16px;
+  border-bottom:1px solid var(--zinc-800);
+  transition:background 0.2s;
+}
+.radar-store:last-child{border-bottom:none}
+.radar-store:hover{background:rgba(200,169,110,0.06)}
+.radar-store-header{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  direction:rtl;
+}
+.radar-store-icon{font-size:1.5rem}
+.radar-store-info{flex:1;min-width:0}
+.radar-store-name{
+  font-weight:600;
+  color:var(--zinc-100);
+  font-size:0.95rem;
+}
+.radar-store-meta{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  margin-top:2px;
+  font-size:0.8rem;
+  color:var(--zinc-400);
+  flex-wrap:wrap;
+}
+.radar-distance{
+  color:var(--gold);
+  font-weight:600;
+}
+.radar-rating{
+  color:#fbbf24;
+}
+.radar-status{
+  padding:1px 8px;
+  border-radius:20px;
+  font-size:0.75rem;
+  font-weight:500;
+}
+.radar-status.open{
+  background:rgba(52,211,153,0.15);
+  color:#34d399;
+}
+.radar-status.closed{
+  background:rgba(248,113,113,0.15);
+  color:#f87171;
+}
+.radar-nav-btn{
+  padding:6px 14px;
+  background:var(--gold);
+  color:var(--zinc-950);
+  border-radius:20px;
+  font-size:0.8rem;
+  font-weight:700;
+  text-decoration:none;
+  white-space:nowrap;
+  transition:all 0.2s;
+}
+.radar-nav-btn:hover{
+  background:#dbb978;
+  transform:scale(1.05);
+}
+.radar-actions{
+  display:flex;
+  gap:8px;
+  padding:12px 16px;
+  border-top:1px solid var(--zinc-800);
+  direction:rtl;
+}
+.radar-action-btn{
+  flex:1;
+  padding:8px 12px;
+  border:1px solid var(--zinc-700);
+  background:transparent;
+  color:var(--zinc-300);
+  border-radius:var(--radius-lg);
+  font-family:var(--font-body);
+  font-size:0.8rem;
+  font-weight:500;
+  cursor:pointer;
+  transition:all 0.2s;
+}
+.radar-action-btn:hover{
+  background:rgba(200,169,110,0.1);
+  border-color:var(--gold-dim);
+  color:var(--gold);
+}
+.radar-whatsapp-btn:hover{
+  border-color:#25d366;
+  color:#25d366;
+  background:rgba(37,211,102,0.1);
+}
+.radar-loading{
+  width:24px;height:24px;
+  border:2px solid var(--zinc-700);
+  border-top-color:var(--gold);
+  border-radius:50%;
+  animation:spin 0.8s linear infinite;
+  margin:0 auto;
+}
+@keyframes spin{to{transform:rotate(360deg)}}
 </style>
 </head>
 <body>
@@ -652,6 +792,7 @@ body::after{
 </footer>
 
 <script src="js/cocktails-data.js"></script>
+<script src="js/radar.js"></script>
 <script>
 // ═══════════════════════════════════════
 //  APP LOGIC (data loaded from js/cocktails-data.js)
@@ -771,6 +912,11 @@ function renderCocktails() {
             <ol class="recipe-steps">
               ${c.steps.map(s => `<li>${s}</li>`).join("")}
             </ol>
+            <div class="radar-section">
+              <button class="radar-btn" onclick="event.stopPropagation(); findNearbyStores(this, '${c.name.replace(/'/g, "\\'")}', ${JSON.stringify(c.ingredients).replace(/"/g, '&quot;')})">
+                📍 מצא חנויות קרובות
+              </button>
+            </div>
           </div>
         </div>
         <svg class="card-chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
