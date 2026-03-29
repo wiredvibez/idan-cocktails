@@ -63,7 +63,11 @@ RULES:
 5. For dark/blurry images: look for faint outlines, silhouettes, reflections, cap colors.
 6. When unsure between two categories, pick the more likely one with "low" confidence.
 
-CONFIDENCE: "high" = label clearly read. "medium" = identified by shape/brand. "low" = best guess.`;
+CONFIDENCE: "high" = label clearly read. "medium" = identified by shape/brand. "low" = best guess.
+
+OUTPUT FORMAT: Return a JSON array. Each entry MUST have these 4 fields:
+{"name_en": "Brand + Type", "name_he": "Hebrew name", "category": "category_key", "confidence": "high|medium|low"}
+Example: {"name_en": "Absolut Vodka", "name_he": "וודקה אבסולוט", "category": "vodka", "confidence": "high"}`;
 
   let base64Data = image;
   let mimeType = 'image/jpeg';
@@ -147,7 +151,32 @@ CONFIDENCE: "high" = label clearly read. "medium" = identified by shape/brand. "
       return res.status(200).json({ bottles: [] });
     }
 
-    return res.status(200).json({ bottles });
+    // Normalize: ensure every bottle has required fields
+    const CATEGORY_HEBREW = {
+      vodka: 'וודקה', gin: "ג'ין", bourbon: 'בורבון', rye_whiskey: 'וויסקי ריי',
+      scotch: 'סקוטש', rum: 'רום', rum_dark: 'רום כהה', tequila: 'טקילה',
+      mezcal: 'מזקל', cognac: 'קוניאק', campari: 'קמפרי', aperol: 'אפרול',
+      kahlua: 'קהלואה', baileys: 'בייליס', triple_sec: 'טריפל סק',
+      sweet_vermouth: 'ורמוט מתוק', amaretto: 'אמרטו', chartreuse: 'שארטרז',
+      benedictine: 'בנדיקטין', maraschino: 'מרשקינו', blue_curacao: 'בלו קוראסאו',
+      galliano: 'גליאנו', fernet: 'פרנה', absinthe: 'אבסינת',
+      peach_schnapps: 'ליקר אפרסק', cherry_liqueur: 'ליקר דובדבן',
+      chocolate_liqueur: 'ליקר שוקולד', creme_de_menthe: 'קרם דה מנט',
+      creme_de_cacao: 'קרם דה קקאו', licor43: 'ליקור 43',
+      bitters: 'ביטרס', orange_bitters: 'ביטרס תפוז', grenadine: 'גרנדין',
+      prosecco: 'פרוסקו', passoa: 'פסואה', liqueur: 'ליקר',
+      syrup: 'סירופ', simple_syrup: 'סירופ פשוט', honey_syrup: 'סירופ דבש',
+      agave_syrup: 'סירופ אגבה', raspberry_syrup: 'סירופ פטל', orgeat: 'אורגיט'
+    };
+
+    const normalized = bottles.map(b => ({
+      name_en: b.name_en || b.name || b.category || 'Unknown',
+      name_he: b.name_he || CATEGORY_HEBREW[b.category] || b.category || 'לא ידוע',
+      category: b.category || 'liqueur',
+      confidence: b.confidence || 'low'
+    }));
+
+    return res.status(200).json({ bottles: normalized });
 
   } catch (err) {
     console.error('Scan error:', err);
