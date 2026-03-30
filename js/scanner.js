@@ -353,13 +353,29 @@ async function callScanApi(imageBase64) {
     body: JSON.stringify({ image: base64ForApi })
   });
 
-  if (!response.ok) {
-    throw new Error(`API error: ${response.status}`);
+  let data = {};
+  try {
+    data = await response.json();
+  } catch {
+    /* body not JSON */
   }
 
-  const data = await response.json();
+  if (!response.ok) {
+    const detail =
+      typeof data.details === 'string'
+        ? data.details
+        : data.error || '';
+    throw new Error(
+      detail
+        ? `API error ${response.status}: ${detail}`
+        : `API error: ${response.status}`
+    );
+  }
+
   if (data.error) {
-    throw new Error(data.error);
+    throw new Error(
+      data.details ? `${data.error}: ${data.details}` : data.error
+    );
   }
 
   return data.bottles || [];

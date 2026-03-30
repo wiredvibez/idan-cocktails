@@ -11,7 +11,15 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  const { image } = req.body;
+  let body = req.body;
+  if (typeof body === 'string') {
+    try {
+      body = JSON.parse(body);
+    } catch {
+      return res.status(400).json({ error: 'Invalid JSON body' });
+    }
+  }
+  const image = body?.image;
 
   if (!image) {
     return res.status(400).json({ error: 'No image provided' });
@@ -79,8 +87,11 @@ Example: {"name_en": "Absolut Vodka", "name_he": "וודקה אבסולוט", "c
     }
   }
 
+  const model =
+    process.env.GEMINI_MODEL?.trim() || 'gemini-2.0-flash';
+
   try {
-    const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
+    const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
 
     const geminiBody = {
       contents: [{
@@ -109,8 +120,20 @@ Example: {"name_en": "Absolut Vodka", "name_he": "וודקה אבסולוט", "c
 
     if (!geminiRes.ok) {
       const errText = await geminiRes.text();
-      console.error('Gemini API error:', geminiRes.status, errText);
-      return res.status(502).json({ error: 'AI service error' });
+      console.error('Gemini API error:', geminiRes.status, model, errText);
+      let details = errText.slice(0, 400);
+      try {
+        const parsed = JSON.parse(errText);
+        details = parsed?.error?.message || parsed?.message || details;
+      } catch {
+        /* keep text slice */
+      }
+      return res.status(502).json({
+        error: 'AI service error',
+        model,
+        upstreamStatus: geminiRes.status,
+        details
+      });
     }
 
     const geminiData = await geminiRes.json();

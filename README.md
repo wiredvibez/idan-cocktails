@@ -21,4 +21,14 @@ vercel
 
 ---
 
+## Environment variables (Vercel)
+
+| Variable | Required | Description |
+|----------|----------|-------------|
+| `GEMINI_API_KEY` | Yes (bar scanner) | [Google AI Studio](https://aistudio.google.com/apikey) API key for `generativelanguage.googleapis.com`. |
+| `GEMINI_MODEL` | No | Model id for scan (default `gemini-2.0-flash`). Set e.g. `gemini-2.5-flash` if your key supports it. |
+| `GOOGLE_PLACES_API_KEY` | No | Only for “nearby stores” on recipe cards (`/api/nearby-stores`). |
+
+---
+
 **Note:** `assets/bg-video.mp4` is large (~10 MB). That is within Vercel’s deployment size limits; for faster loads later you could host the video on a CDN or compress it further.
