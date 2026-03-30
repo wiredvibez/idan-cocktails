@@ -113,8 +113,12 @@ body{
   cursor:pointer;
   transition:all 0.3s var(--ease-out-expo);
   white-space:nowrap;
-  display:inline-flex;align-items:center;
+  display:inline-flex;align-items:center;gap:0.4rem;
   text-decoration:none;
+}
+.nav-link .nav-link-icon{
+  width:1.05em;height:1.05em;
+  flex-shrink:0;opacity:0.9;
 }
 .nav-link:hover{
   border-color:var(--gold-dim);
@@ -534,7 +538,7 @@ body{
   <div class="nav-inner">
     <a href="index.html" class="nav-brand"><span>Cocktails</span> Wiki</a>
     <div class="nav-links">
-      <a href="bar-scanner.html" class="nav-link active">🍸 מה יש לי בבר?</a>
+      <a href="bar-scanner.html" class="nav-link active"><svg class="nav-link-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 22h8"/><path d="M12 11v11"/><path d="m19 3-7 8-7-8h14z"/></svg><span>מה יש לי בבר?</span></a>
       <a href="index.html" class="nav-link">כל הקוקטיילים</a>
     </div>
   </div>
@@ -543,7 +547,7 @@ body{
 <!-- MAIN -->
 <main class="page-main">
   <section class="scanner-hero">
-    <h1 class="scanner-title">?מה יש לי בבר</h1>
+    <h1 class="scanner-title" dir="rtl">מה יש לי בבר?</h1>
     <p class="scanner-subtitle">צלם את הבר שלך ונגלה לך אילו קוקטיילים אתה יכול להכין</p>
 
     <!-- Upload Zone -->
