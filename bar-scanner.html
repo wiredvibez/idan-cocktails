@@ -1,0 +1,645 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>מה יש לי בבר? | Cocktails Wiki</title>
+<meta name="description" content="צלם את הבר שלך וגלה אילו קוקטיילים אתה יכול להכין">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --gold:#C8A96E;
+  --gold-dim:#A08454;
+  --gold-glow:rgba(200,169,110,0.15);
+  --zinc-950:#09090b;
+  --zinc-900:#18181b;
+  --zinc-800:#27272a;
+  --zinc-700:#3f3f46;
+  --zinc-600:#52525b;
+  --zinc-500:#71717a;
+  --zinc-400:#a1a1aa;
+  --zinc-300:#d4d4d8;
+  --zinc-200:#e4e4e7;
+  --zinc-100:#f4f4f5;
+  --radius-lg:1.25rem;
+  --ease-out-expo:cubic-bezier(0.16,1,0.3,1);
+  --font-display:'Outfit',sans-serif;
+  --font-body:'Outfit',sans-serif;
+}
+html{scroll-behavior:smooth;-webkit-font-smoothing:antialiased}
+body{
+  font-family:var(--font-body);
+  background:var(--zinc-950);
+  color:var(--zinc-300);
+  overflow-x:hidden;
+  line-height:1.6;
+  direction:rtl;
+  text-align:right;
+  min-height:100vh;
+}
+
+/* ── Scrollbar ── */
+::-webkit-scrollbar{width:6px}
+::-webkit-scrollbar-track{background:var(--zinc-950)}
+::-webkit-scrollbar-thumb{background:var(--zinc-700);border-radius:3px}
+::-webkit-scrollbar-thumb:hover{background:var(--gold-dim)}
+
+/* ── Animations ── */
+@keyframes fadeUp{
+  from{opacity:0;transform:translateY(20px)}
+  to{opacity:1;transform:translateY(0)}
+}
+@keyframes scanMove{
+  0%{top:0;opacity:1}
+  100%{top:100%;opacity:0.6}
+}
+@keyframes loadSlide{
+  0%{transform:translateX(100%)}
+  100%{transform:translateX(-400%)}
+}
+@keyframes dotPulse{
+  0%,80%,100%{opacity:0.3}
+  40%{opacity:1}
+}
+@keyframes borderPulse{
+  0%,100%{border-color:rgba(200,169,110,0.25);box-shadow:0 0 20px rgba(200,169,110,0.04)}
+  50%{border-color:rgba(200,169,110,0.5);box-shadow:0 0 30px rgba(200,169,110,0.1)}
+}
+@keyframes slideUp{
+  from{opacity:0;transform:translateY(24px)}
+  to{opacity:1;transform:translateY(0)}
+}
+
+/* ── Navigation ── */
+.nav-section{
+  position:sticky;top:0;z-index:100;
+  background:rgba(9,9,11,0.85);
+  backdrop-filter:blur(20px);
+  -webkit-backdrop-filter:blur(20px);
+  border-bottom:1px solid rgba(200,169,110,0.08);
+  padding:1rem 0;
+}
+.nav-inner{
+  max-width:1400px;margin:0 auto;
+  padding:0 clamp(1.5rem,4vw,4rem);
+  display:flex;align-items:center;
+  justify-content:center;
+  gap:1rem;flex-wrap:wrap;
+  flex-direction:column;
+}
+.nav-brand{
+  font-family:var(--font-display);
+  font-weight:700;font-size:1.1rem;
+  color:var(--zinc-100);
+  white-space:nowrap;
+  text-decoration:none;
+}
+.nav-brand span{color:var(--gold)}
+.nav-links{
+  display:flex;gap:0.5rem;flex-wrap:wrap;
+  align-items:center;justify-content:center;
+}
+.nav-link{
+  padding:0.6rem 1.25rem;
+  min-height:44px;
+  border-radius:100px;
+  border:1px solid var(--zinc-800);
+  background:transparent;
+  color:var(--zinc-400);
+  font-family:var(--font-body);
+  font-size:0.85rem;
+  cursor:pointer;
+  transition:all 0.3s var(--ease-out-expo);
+  white-space:nowrap;
+  display:inline-flex;align-items:center;
+  text-decoration:none;
+}
+.nav-link:hover{
+  border-color:var(--gold-dim);
+  color:var(--zinc-200);
+  background:rgba(200,169,110,0.06);
+}
+.nav-link.active{
+  background:var(--gold);
+  color:var(--zinc-950);
+  border-color:var(--gold);
+  font-weight:600;
+}
+
+/* ── Page Container ── */
+.page-main{
+  max-width:900px;margin:0 auto;
+  padding:2rem clamp(1rem,4vw,3rem);
+}
+
+/* ── Scanner Hero ── */
+.scanner-hero{
+  text-align:center;
+  padding:2rem 0 1.5rem;
+  animation:fadeUp 0.6s var(--ease-out-expo) both;
+}
+.scanner-title{
+  font-family:var(--font-display);
+  font-size:clamp(2rem,5vw,2.8rem);
+  font-weight:700;
+  color:var(--gold);
+  margin-bottom:0.5rem;
+}
+.scanner-subtitle{
+  font-size:0.95rem;
+  color:var(--zinc-500);
+  max-width:500px;margin:0 auto;
+}
+
+/* ── Upload Zone ── */
+.upload-zone{
+  display:flex;flex-direction:column;
+  align-items:center;justify-content:center;
+  gap:1.25rem;padding:4rem 2rem;
+  border:2px dashed rgba(200,169,110,0.3);
+  border-radius:var(--radius-lg);
+  background:rgba(255,255,255,0.02);
+  cursor:pointer;
+  transition:all 0.4s var(--ease-out-expo);
+  max-width:700px;margin:2rem auto;
+  min-height:300px;
+  animation:borderPulse 3s ease-in-out infinite;
+}
+.upload-zone:hover{
+  border-color:var(--gold);
+  background:rgba(200,169,110,0.04);
+  box-shadow:0 0 40px rgba(200,169,110,0.08);
+}
+.upload-zone.drag-over{
+  border-style:solid;border-color:var(--gold);
+  background:rgba(200,169,110,0.08);
+  box-shadow:0 0 60px rgba(200,169,110,0.15);
+  animation:none;
+}
+.upload-icon{
+  width:64px;height:64px;
+  color:var(--gold);opacity:0.6;
+  transition:opacity 0.3s,transform 0.3s;
+}
+.upload-zone:hover .upload-icon{opacity:1;transform:scale(1.05)}
+.upload-text{font-size:1rem;color:var(--zinc-200);font-weight:500}
+.upload-hint{font-size:0.8rem;color:var(--zinc-600)}
+
+.camera-btn{
+  display:none;
+  padding:10px 24px;border-radius:100px;
+  background:rgba(255,255,255,0.04);border:1px solid var(--zinc-800);
+  color:var(--zinc-300);font-family:var(--font-body);
+  font-size:0.85rem;cursor:pointer;transition:all 0.3s;
+}
+.camera-btn:hover{border-color:var(--gold);background:rgba(200,169,110,0.06)}
+@media(hover:none)and(pointer:coarse){
+  .camera-btn{display:inline-flex;align-items:center;gap:6px}
+}
+
+/* ── Preview ── */
+.preview-section{
+  max-width:700px;margin:2rem auto;
+  text-align:center;
+  animation:fadeUp 0.5s var(--ease-out-expo) both;
+}
+.preview-wrap{
+  position:relative;border-radius:var(--radius-lg);overflow:hidden;
+  border:1px solid rgba(255,255,255,0.08);
+  box-shadow:0 8px 32px rgba(0,0,0,0.5);
+}
+.preview-img{width:100%;display:block;border-radius:var(--radius-lg)}
+.preview-actions{
+  display:flex;gap:1rem;justify-content:center;
+  margin-top:1.5rem;flex-wrap:wrap;
+}
+
+/* ── Buttons ── */
+.scan-btn{
+  padding:14px 36px;border-radius:100px;
+  background:var(--gold);color:var(--zinc-950);
+  font-weight:700;font-size:1rem;
+  border:none;cursor:pointer;
+  font-family:var(--font-body);
+  box-shadow:0 4px 20px rgba(200,169,110,0.25);
+  transition:all 0.3s var(--ease-out-expo);
+}
+.scan-btn:hover{
+  transform:translateY(-2px);
+  box-shadow:0 8px 30px rgba(200,169,110,0.35);
+}
+.change-btn{
+  padding:14px 24px;border-radius:100px;
+  background:transparent;border:1px solid var(--zinc-800);
+  color:var(--zinc-400);font-size:0.9rem;cursor:pointer;
+  font-family:var(--font-body);transition:all 0.3s;
+}
+.change-btn:hover{color:var(--zinc-200);border-color:var(--zinc-600)}
+
+/* ── Scan Overlay ── */
+.scan-overlay{
+  position:absolute;inset:0;
+  background:rgba(0,0,0,0.4);
+  backdrop-filter:blur(1px);
+}
+.scan-line{
+  position:absolute;left:0;right:0;height:3px;
+  background:linear-gradient(90deg,transparent 0%,rgba(200,169,110,0.4) 20%,var(--gold) 50%,rgba(200,169,110,0.4) 80%,transparent 100%);
+  box-shadow:0 0 20px var(--gold),0 0 60px rgba(200,169,110,0.3);
+  animation:scanMove 2.5s ease-in-out infinite;
+}
+
+/* ── Loading ── */
+.loading-bar{
+  width:200px;height:4px;border-radius:2px;
+  background:rgba(255,255,255,0.06);margin:0 auto 1rem;overflow:hidden;
+}
+.loading-fill{
+  height:100%;width:30%;border-radius:2px;
+  background:linear-gradient(90deg,var(--gold),var(--gold-dim));
+  animation:loadSlide 1.5s ease-in-out infinite;
+}
+.loading-text{
+  text-align:center;color:var(--zinc-500);
+  font-size:0.9rem;margin-top:1.5rem;
+}
+.loading-dots span{animation:dotPulse 1.4s infinite}
+.loading-dots span:nth-child(2){animation-delay:0.2s}
+.loading-dots span:nth-child(3){animation-delay:0.4s}
+
+/* ── Results ── */
+.results-block{
+  margin-bottom:3rem;text-align:center;
+  animation:fadeUp 0.6s var(--ease-out-expo) both;
+}
+.section-heading{
+  font-family:var(--font-display);
+  font-size:1.4rem;font-weight:700;
+  color:var(--zinc-200);margin-bottom:0.5rem;
+}
+.section-accent{
+  display:block;width:40px;height:2px;margin:0.5rem auto 1.25rem;
+  background:var(--gold);border-radius:2px;
+}
+.results-hint{font-size:0.8rem;color:var(--zinc-600);margin-bottom:1rem}
+.full-match-color{color:#34d399}
+.partial-color{color:var(--zinc-500)}
+
+/* ── Bottles Grid ── */
+.bottles-grid{
+  display:flex;flex-wrap:wrap;gap:0.75rem;
+  margin-top:1rem;justify-content:center;
+}
+.bottle-chip{
+  display:flex;align-items:center;gap:0.5rem;
+  padding:10px 16px;border-radius:12px;
+  background:rgba(255,255,255,0.03);
+  border:1px solid rgba(255,255,255,0.06);
+  font-size:0.8rem;transition:all 0.3s;
+}
+.bottle-used{border-color:rgba(200,169,110,0.35);background:rgba(200,169,110,0.05)}
+.bottle-unused{opacity:0.5}
+.bottle-emoji{font-size:1.2rem}
+.bottle-info{display:flex;flex-direction:column;gap:1px}
+.bottle-name-he{font-weight:600;color:var(--zinc-200);font-size:0.8rem}
+.bottle-name-en{font-size:0.7rem;color:var(--zinc-500)}
+.bottle-conf{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.conf-high{background:#34d399;box-shadow:0 0 6px rgba(52,211,153,0.4)}
+.conf-medium{background:#fbbf24;box-shadow:0 0 6px rgba(251,191,36,0.4)}
+.conf-low{background:var(--zinc-600);position:relative}
+.conf-low::after{content:'?';position:absolute;top:-1px;left:1px;font-size:7px;color:var(--zinc-400);font-weight:700}
+.bottle-chip.excluded{opacity:0.3;text-decoration:line-through;border-style:dashed}
+.bottle-chip{cursor:pointer;user-select:none}
+.bottle-chip:hover{border-color:var(--gold-dim);background:rgba(200,169,110,0.08)}
+
+/* ── Cocktail Cards Grid ── */
+.card-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(260px,1fr));
+  gap:1.5rem;
+}
+.scanner-card{
+  background:rgba(255,255,255,0.03);
+  border-radius:var(--radius-lg);
+  overflow:hidden;cursor:pointer;
+  transition:all 0.4s var(--ease-out-expo);
+  border:1px solid rgba(255,255,255,0.04);
+  animation:slideUp 0.5s var(--ease-out-expo) both;
+}
+.scanner-card:hover{
+  transform:translateY(-6px);
+  box-shadow:0 16px 48px rgba(0,0,0,0.4),0 0 0 1px rgba(200,169,110,0.2);
+  border-color:rgba(200,169,110,0.15);
+}
+.scanner-card-img-wrap{
+  aspect-ratio:4/3;overflow:hidden;position:relative;
+}
+.scanner-card-img-wrap::after{
+  content:'';position:absolute;bottom:0;left:0;right:0;height:50%;
+  background:linear-gradient(to top,var(--zinc-950),transparent);
+  pointer-events:none;
+}
+.scanner-card-img{
+  width:100%;height:100%;object-fit:cover;
+  transition:transform 0.6s var(--ease-out-expo);
+}
+.scanner-card:hover .scanner-card-img{transform:scale(1.06)}
+.scanner-card-body{
+  padding:0.5rem 1.25rem 1.25rem;
+  display:flex;flex-direction:column;gap:6px;
+}
+.scanner-card-meta{
+  display:flex;justify-content:space-between;align-items:center;
+}
+.scanner-card-name{
+  font-family:var(--font-display);
+  font-size:1.15rem;font-weight:700;
+  color:var(--zinc-100);
+  transition:color 0.3s;
+}
+.scanner-card:hover .scanner-card-name{color:var(--gold)}
+.scanner-card-desc{
+  font-size:0.8rem;color:var(--zinc-500);
+  line-height:1.5;
+  display:-webkit-box;-webkit-line-clamp:2;
+  -webkit-box-orient:vertical;overflow:hidden;
+}
+.scanner-card-ingredients{
+  display:flex;flex-wrap:wrap;gap:0.35rem;
+  margin-top:0.25rem;
+}
+.ingredient-tag{
+  font-size:0.7rem;
+  padding:3px 10px;
+  border-radius:100px;
+  background:rgba(200,169,110,0.08);
+  border:1px solid rgba(200,169,110,0.15);
+  color:var(--gold);
+  white-space:nowrap;
+}
+
+/* ── Expandable Recipe ── */
+.scanner-card-recipe{
+  max-height:0;overflow:hidden;
+  transition:max-height 0.5s var(--ease-out-expo),opacity 0.3s,margin 0.3s;
+  opacity:0;margin-top:0;
+}
+.scanner-card.expanded .scanner-card-recipe{
+  max-height:800px;opacity:1;margin-top:1rem;
+}
+.recipe-title{
+  font-weight:700;font-size:0.85rem;
+  color:var(--gold);margin-bottom:0.5rem;
+  padding-bottom:0.25rem;
+  border-bottom:1px solid rgba(200,169,110,0.15);
+}
+.recipe-list{
+  list-style:none;padding:0;margin:0 0 1rem;
+}
+.recipe-list li{
+  display:flex;justify-content:space-between;align-items:center;
+  padding:0.4rem 0;
+  border-bottom:1px solid rgba(255,255,255,0.03);
+  font-size:0.85rem;color:var(--zinc-300);
+}
+.recipe-amount{
+  color:var(--zinc-500);font-size:0.8rem;
+  direction:ltr;
+}
+.recipe-steps{
+  padding-right:1.25rem;margin:0;
+}
+.recipe-steps li{
+  padding:0.35rem 0;
+  font-size:0.85rem;color:var(--zinc-400);
+  line-height:1.6;
+}
+.card-chevron{
+  width:20px;height:20px;
+  margin:0.5rem auto 0;
+  color:var(--zinc-600);
+  transition:transform 0.4s var(--ease-out-expo),color 0.3s;
+  display:block;
+}
+.scanner-card.expanded .card-chevron{
+  transform:rotate(180deg);
+  color:var(--gold);
+}
+
+/* ── Match Badges ── */
+.match-badge{
+  position:absolute;top:12px;right:12px;
+  padding:4px 12px;border-radius:100px;
+  font-size:0.7rem;font-weight:600;z-index:2;
+  backdrop-filter:blur(8px);
+}
+.match-full{background:rgba(52,211,153,0.9);color:#09090b}
+.match-partial{background:rgba(251,191,36,0.9);color:#09090b}
+
+/* ── Manual Add ── */
+.manual-add-row{
+  display:flex;gap:0.75rem;max-width:420px;
+  margin:1rem auto 0;
+}
+.manual-input{
+  flex:1;padding:10px 18px;border-radius:100px;
+  background:rgba(255,255,255,0.03);border:1px solid var(--zinc-800);
+  color:var(--zinc-200);font-family:var(--font-body);
+  font-size:0.9rem;outline:none;transition:all 0.3s;
+}
+.manual-input:focus{
+  border-color:var(--gold);
+  box-shadow:0 0 0 3px var(--gold-glow);
+}
+.manual-input::placeholder{color:var(--zinc-600)}
+.manual-add-btn{
+  padding:10px 22px;border-radius:100px;
+  background:var(--gold);color:var(--zinc-950);
+  font-weight:700;font-size:0.85rem;
+  border:none;cursor:pointer;
+  font-family:var(--font-body);
+  transition:all 0.3s;white-space:nowrap;
+}
+.manual-add-btn:hover{box-shadow:0 4px 14px rgba(200,169,110,0.3);transform:translateY(-1px)}
+.manual-tags{
+  display:flex;flex-wrap:wrap;gap:0.5rem;
+  margin-top:1rem;justify-content:center;
+}
+.manual-tag{
+  display:inline-flex;align-items:center;gap:6px;
+  padding:6px 14px;border-radius:100px;
+  background:rgba(200,169,110,0.08);
+  border:1px solid rgba(200,169,110,0.2);
+  color:var(--gold);font-size:0.8rem;
+}
+.manual-tag-remove{
+  background:none;border:none;color:var(--gold);
+  cursor:pointer;font-size:0.9rem;padding:0;
+  opacity:0.5;transition:opacity 0.2s;
+}
+.manual-tag-remove:hover{opacity:1}
+
+/* ── No Matches / Error ── */
+.no-matches{
+  text-align:center;padding:3rem 2rem;
+  color:var(--zinc-500);font-size:0.95rem;
+}
+.error-section{
+  text-align:center;padding:3rem 2rem;
+  animation:fadeUp 0.5s var(--ease-out-expo) both;
+}
+.error-message{
+  color:#fb7185;font-size:0.95rem;
+  margin-bottom:1.5rem;
+  padding:1rem 1.5rem;border-radius:12px;
+  background:rgba(244,63,94,0.08);
+  border:1px solid rgba(244,63,94,0.2);
+  display:inline-block;
+}
+.scan-again-wrap{
+  text-align:center;margin-top:3rem;
+  padding-top:2rem;border-top:1px solid rgba(255,255,255,0.04);
+}
+
+/* ── Footer ── */
+.footer{
+  text-align:center;
+  padding:2.5rem 1rem;
+  color:var(--zinc-700);
+  font-size:0.75rem;
+  letter-spacing:0.15em;
+  border-top:1px solid rgba(255,255,255,0.03);
+  margin-top:2rem;
+}
+
+/* ── Responsive ── */
+@media(max-width:640px){
+  .scanner-title{font-size:1.8rem}
+  .upload-zone{padding:3rem 1.5rem;min-height:250px;margin:1.5rem auto;max-width:100%}
+  .preview-section{margin:1.5rem auto}
+  .card-grid{grid-template-columns:1fr;gap:1.25rem}
+  .manual-add-row{flex-direction:column;max-width:100%;padding:0}
+  .manual-add-btn{width:100%}
+  .scan-btn{width:100%}
+  .page-main{padding:1.5rem 1rem}
+}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav class="nav-section">
+  <div class="nav-inner">
+    <a href="index.html" class="nav-brand"><span>Cocktails</span> Wiki</a>
+    <div class="nav-links">
+      <a href="bar-scanner.html" class="nav-link active">🍸 מה יש לי בבר?</a>
+      <a href="index.html" class="nav-link">כל הקוקטיילים</a>
+    </div>
+  </div>
+</nav>
+
+<!-- MAIN -->
+<main class="page-main">
+  <section class="scanner-hero">
+    <h1 class="scanner-title">?מה יש לי בבר</h1>
+    <p class="scanner-subtitle">צלם את הבר שלך ונגלה לך אילו קוקטיילים אתה יכול להכין</p>
+
+    <!-- Upload Zone -->
+    <div id="upload-zone" class="upload-zone">
+      <svg class="upload-icon" viewBox="0 0 72 72" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <rect x="8" y="16" width="56" height="42" rx="6" stroke="currentColor" stroke-width="2.5" fill="none"/>
+        <circle cx="36" cy="37" r="11" stroke="currentColor" stroke-width="2.5" fill="none"/>
+        <circle cx="36" cy="37" r="5" stroke="currentColor" stroke-width="1.5" fill="none" opacity="0.5"/>
+        <rect x="14" y="22" width="8" height="4" rx="1.5" stroke="currentColor" stroke-width="1.5" fill="none" opacity="0.6"/>
+        <path d="M26 16 L30 8 L42 8 L46 16" stroke="currentColor" stroke-width="2.5" fill="none" stroke-linejoin="round"/>
+      </svg>
+      <p class="upload-text">גרור תמונה לכאן או לחץ להעלאה</p>
+      <p class="upload-hint">JPG, PNG, WebP, HEIC - עד 10MB</p>
+      <button id="camera-btn" class="camera-btn">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+        צלם תמונה
+      </button>
+      <input type="file" id="file-input" accept="image/jpeg,image/png,image/webp,image/heic" hidden>
+      <input type="file" id="camera-input" accept="image/*" capture="environment" hidden>
+    </div>
+
+    <!-- Preview -->
+    <div id="preview-section" class="preview-section" style="display:none">
+      <div class="preview-wrap">
+        <img id="preview-img" class="preview-img" alt="תצוגה מקדימה">
+        <div id="scan-overlay" class="scan-overlay" style="display:none">
+          <div class="scan-line"></div>
+        </div>
+      </div>
+      <div id="preview-actions" class="preview-actions">
+        <button id="scan-btn" class="scan-btn">סרוק את הבר שלי</button>
+        <button id="change-btn" class="change-btn">החלף תמונה</button>
+      </div>
+      <div id="loading-text" class="loading-text" style="display:none">
+        <div class="loading-bar"><div class="loading-fill"></div></div>
+        <p>סורק את הבקבוקים שלך<span class="loading-dots"><span>.</span><span>.</span><span>.</span></span></p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Results -->
+  <section id="results-section" style="display:none">
+    <div class="results-block">
+      <h3 class="section-heading">בקבוקים שזוהו</h3>
+      <span class="section-accent"></span>
+      <div id="bottles-grid" class="bottles-grid"></div>
+    </div>
+
+    <div class="results-block">
+      <h3 class="section-heading">הוסף מרכיבים ידנית</h3>
+      <span class="section-accent"></span>
+      <p class="results-hint">יש לך סירופ, סודה או מרכיבים שה-AI לא ראה? הוסף אותם כאן</p>
+      <div class="manual-add-row">
+        <input id="manual-input" type="text" class="manual-input" placeholder="...הקלד שם מרכיב" list="ingredient-suggestions" dir="rtl">
+        <datalist id="ingredient-suggestions"></datalist>
+        <button id="manual-add-btn" class="manual-add-btn">הוסף</button>
+      </div>
+      <div id="manual-tags" class="manual-tags"></div>
+    </div>
+
+    <div id="full-match-section" class="results-block" style="display:none">
+      <h3 class="section-heading full-match-color"><span id="full-match-count"></span></h3>
+      <span class="section-accent"></span>
+      <div id="full-match-grid" class="card-grid"></div>
+    </div>
+
+    <div id="partial-match-section" class="results-block" style="display:none">
+      <h3 class="section-heading partial-color">עם עוד מרכיב אחד תוכל להכין:</h3>
+      <span class="section-accent"></span>
+      <div id="partial-match-grid" class="card-grid"></div>
+    </div>
+
+    <div id="no-matches-msg" class="no-matches" style="display:none">
+      <p>לא מצאנו קוקטיילים מתאימים, אבל הנה מה שזיהינו בבר שלך</p>
+    </div>
+
+    <div class="scan-again-wrap">
+      <button id="scan-again-btn" class="scan-btn">סרוק שוב</button>
+    </div>
+  </section>
+
+  <!-- Error -->
+  <div id="error-section" class="error-section" style="display:none">
+    <p id="error-message" class="error-message"></p>
+    <button id="retry-btn" class="scan-btn">נסה שוב</button>
+  </div>
+</main>
+
+<footer class="footer">
+  COCKTAILS WIKI
+</footer>
+
+<!-- Scripts: data first, then matcher, then scanner UI -->
+<script src="js/cocktails-data.js"></script>
+<script src="js/matcher.js"></script>
+<script src="js/scanner.js"></script>
+
+</body>
+</html>

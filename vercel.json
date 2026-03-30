@@ -1,14 +1,7 @@
 {
-  "$schema": "https://openapi.vercel.sh/vercel.json",
-  "headers": [
-    {
-      "source": "/bg-video.mp4",
-      "headers": [
-        {
-          "key": "Cache-Control",
-          "value": "public, max-age=31536000, immutable"
-        }
-      ]
+  "functions": {
+    "api/scan-bar.js": {
+      "maxDuration": 60
     }
-  ]
+  }
 }
