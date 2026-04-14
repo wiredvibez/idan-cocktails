@@ -1,3 +1,5 @@
+import newrelic from 'newrelic';
+
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
@@ -18,6 +20,8 @@ export default async function handler(req, res) {
   }
 
   try {
+    const placesStart = Date.now();
+    newrelic.addCustomAttributes({ lat, lng });
     // Search for liquor stores and supermarkets nearby
     const searchUrl = 'https://places.googleapis.com/v1/places:searchNearby';
 
@@ -86,6 +90,11 @@ export default async function handler(req, res) {
 
     // Sort by distance (closest first)
     stores.sort((a, b) => (a.distance || 9999) - (b.distance || 9999));
+
+    newrelic.addCustomAttributes({
+      places_latency_ms: Date.now() - placesStart,
+      store_count: stores.length
+    });
 
     return res.status(200).json({ stores: stores.slice(0, 5) });
 

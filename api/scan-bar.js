@@ -1,3 +1,5 @@
+import newrelic from 'newrelic';
+
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
@@ -87,10 +89,14 @@ Example: {"name_en": "Absolut Vodka", "name_he": "וודקה אבסולוט", "c
     }
   }
 
+  const imageSizeKb = Math.round(base64Data.length * 0.75 / 1024);
+  newrelic.addCustomAttributes({ image_size_kb: imageSizeKb });
+
   const model =
     process.env.GEMINI_MODEL?.trim() || 'gemini-2.0-flash';
 
   try {
+    const geminiStart = Date.now();
     const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
 
     const geminiBody = {
@@ -120,6 +126,7 @@ Example: {"name_en": "Absolut Vodka", "name_he": "וודקה אבסולוט", "c
 
     if (!geminiRes.ok) {
       const errText = await geminiRes.text();
+      newrelic.addCustomAttributes({ gemini_latency_ms: Date.now() - geminiStart, gemini_error: geminiRes.status });
       console.error('Gemini API error:', geminiRes.status, model, errText);
       let details = errText.slice(0, 400);
       try {
@@ -198,6 +205,11 @@ Example: {"name_en": "Absolut Vodka", "name_he": "וודקה אבסולוט", "c
       category: b.category || 'liqueur',
       confidence: b.confidence || 'low'
     }));
+
+    newrelic.addCustomAttributes({
+      gemini_latency_ms: Date.now() - geminiStart,
+      bottle_count: normalized.length
+    });
 
     return res.status(200).json({ bottles: normalized });
 
