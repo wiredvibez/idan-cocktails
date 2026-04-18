@@ -96,7 +96,7 @@ Example: {"name_en": "Absolut Vodka", "name_he": "וודקה אבסולוט", "c
   newrelic.addCustomAttributes({ image_size_kb: imageSizeKb });
 
   const model =
-    process.env.GEMINI_MODEL?.trim() || 'gemini-2.5-flash';
+    process.env.GEMINI_MODEL?.trim() || 'gemini-2.5-flash-lite';
 
   try {
     const geminiStart = Date.now();
@@ -116,8 +116,9 @@ Example: {"name_en": "Absolut Vodka", "name_he": "וודקה אבסולוט", "c
       }],
       generationConfig: {
         temperature: 0.2,
-        maxOutputTokens: 8192,
-        responseMimeType: "application/json"
+        maxOutputTokens: 4096,
+        responseMimeType: "application/json",
+        thinkingConfig: { thinkingBudget: 0 }
       }
     };
 
