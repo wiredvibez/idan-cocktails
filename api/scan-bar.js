@@ -71,9 +71,10 @@ RULES:
 1. Read label text first. Even partial text counts ("...olut" = Absolut = vodka).
 2. If label unreadable, use bottle shape + liquid color + cap color to identify.
 3. IGNORE: water, soda, cola, juice, fresh fruit, ice, salt, sugar, tonic water.
-4. Count all bottles visible. Your output should match the number of alcohol bottles you see.
-5. For dark/blurry images: look for faint outlines, silhouettes, reflections, cap colors.
-6. When unsure between two categories, pick the more likely one with "low" confidence.
+4. For dark/blurry images: look for faint outlines, silhouettes, reflections, cap colors.
+5. When unsure between two categories, pick the more likely one with "low" confidence.
+6. OUTPUT LIMIT: Return at most 15 bottles. On busy shelves, prioritize the most prominent/readable bottles covering different categories. Do not enumerate duplicates (e.g. three identical vodkas → one entry).
+7. DEDUPLICATE: if the same category appears multiple times with same confidence, include it only once.
 
 CONFIDENCE: "high" = label clearly read. "medium" = identified by shape/brand. "low" = best guess.
 
