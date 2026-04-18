@@ -37,10 +37,12 @@ export default async function handler(req, res) {
 
   const geminiPrompt = `You are identifying alcohol bottles in a bar photo for a cocktail recipe matcher.
 
-STEP 1 — SCENE CHECK: First determine if the image contains actual alcohol BOTTLES (not glasses, not cocktails, not food).
+STEP 1 — SCENE CHECK: First determine if the image contains actual alcohol BOTTLES (not glasses, not cocktails, not food, not wine).
   • If the image shows food, coffee, a restaurant scene with no visible bottles, wine glasses, empty glasses, or cocktails in glasses without a bottle in frame → RETURN AN EMPTY ARRAY [].
-  • If the image shows clearly visible alcohol bottles (with labels or recognizable silhouettes) → proceed to STEP 2.
-  • DO NOT invent bottles. DO NOT guess bottles from color/context alone. Only list bottles you can actually SEE in the frame.
+  • If the PRIMARY subject is a cocktail/drink in a glass and only small/peripheral/cut-off bottles appear at the edges or in the background blur → RETURN AN EMPTY ARRAY []. Peripheral bottles that are out of focus or barely visible are NOT the scene's subject — skip them.
+  • WINE is out of scope. Any bottle with wine (red/rose/white) being poured into a wine glass is NOT our target. If the primary bottle is a wine bottle → RETURN []. Do not classify wine as prosecco unless you can clearly see a wire cage or foil top.
+  • If the image shows clearly visible alcohol SPIRITS bottles as the primary subject (with labels or recognizable silhouettes) → proceed to STEP 2.
+  • DO NOT invent bottles. DO NOT guess bottles from color/context alone. Only list bottles you can actually SEE in the frame AND are a meaningful subject of the photo.
 
 STEP 2 — TASK: List every bottle visible. Return a JSON array.
 
