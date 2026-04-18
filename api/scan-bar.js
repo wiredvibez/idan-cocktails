@@ -1,4 +1,6 @@
-import newrelic from 'newrelic';
+// New Relic backend agent removed: ESM `import newrelic` crashes Vercel
+// serverless on cold start. Browser Agent (frontend) covers monitoring.
+const newrelic = { addCustomAttributes: () => {} };
 
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
