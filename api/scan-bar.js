@@ -35,9 +35,14 @@ export default async function handler(req, res) {
     return res.status(500).json({ error: 'Server configuration error' });
   }
 
-  const geminiPrompt = `You are identifying alcohol bottles in a bar photo for a cocktail recipe matcher. Be thorough — identify EVERY bottle you can see, even partially visible ones.
+  const geminiPrompt = `You are identifying alcohol bottles in a bar photo for a cocktail recipe matcher.
 
-TASK: List every alcohol bottle visible. Return a JSON array. If you see bottles but can't read labels, still identify them by shape/color with "low" confidence. NEVER return an empty array if bottles are visible.
+STEP 1 — SCENE CHECK: First determine if the image contains actual alcohol BOTTLES (not glasses, not cocktails, not food).
+  • If the image shows food, coffee, a restaurant scene with no visible bottles, wine glasses, empty glasses, or cocktails in glasses without a bottle in frame → RETURN AN EMPTY ARRAY [].
+  • If the image shows clearly visible alcohol bottles (with labels or recognizable silhouettes) → proceed to STEP 2.
+  • DO NOT invent bottles. DO NOT guess bottles from color/context alone. Only list bottles you can actually SEE in the frame.
+
+STEP 2 — TASK: List every bottle visible. Return a JSON array.
 
 VALID CATEGORIES (use these exact keys):
 vodka, gin, bourbon, rye_whiskey, scotch, rum, rum_dark, tequila, mezcal, cognac, campari, aperol, kahlua, baileys, triple_sec, sweet_vermouth, amaretto, chartreuse, benedictine, maraschino, blue_curacao, galliano, fernet, absinthe, peach_schnapps, cherry_liqueur, chocolate_liqueur, creme_de_menthe, creme_de_cacao, licor43, bitters, orange_bitters, grenadine, prosecco, passoa, liqueur, syrup, simple_syrup, honey_syrup, agave_syrup, raspberry_syrup, orgeat
@@ -70,13 +75,20 @@ VISUAL IDENTIFICATION (when labels are unreadable):
 RULES:
 1. Read label text first. Even partial text counts ("...olut" = Absolut = vodka).
 2. If label unreadable, use bottle shape + liquid color + cap color to identify.
-3. IGNORE: water, soda, cola, juice, fresh fruit, ice, salt, sugar, tonic water.
+3. IGNORE: water, soda, cola, juice, fresh fruit, ice, salt, sugar, tonic water, empty glasses, cocktails in glasses, plates of food, coffee cups, napkins.
 4. For dark/blurry images: look for faint outlines, silhouettes, reflections, cap colors.
-5. When unsure between two categories, pick the more likely one with "low" confidence.
-6. OUTPUT LIMIT: Return at most 15 bottles. On busy shelves, prioritize the most prominent/readable bottles covering different categories. Do not enumerate duplicates (e.g. three identical vodkas → one entry).
-7. DEDUPLICATE: if the same category appears multiple times with same confidence, include it only once.
+5. If you see ONLY a glass/cup with liquid but no bottle in frame → that is NOT a bottle. Skip it.
+6. Hennessy cognac has a DISTINCTIVE curvy amber bottle with gold label. It is cognac, NEVER prosecco.
+7. Prosecco/champagne require a visible WIRE CAGE or FOIL TOP on the bottle — if you don't see that, it's not prosecco.
+8. OUTPUT LIMIT: Return at most 15 bottles. On busy shelves, prioritize the most prominent/readable bottles covering different categories. Do not enumerate duplicates.
+9. DEDUPLICATE: if the same category appears multiple times with same confidence, include it only once.
+10. If you are guessing and not at least 50% confident, SKIP the bottle rather than return a low-confidence guess.
 
-CONFIDENCE: "high" = label clearly read. "medium" = identified by shape/brand. "low" = best guess.
+CONFIDENCE RULES (be decisive, don't default to "low"):
+• "high" = brand name or distinctive trade dress clearly readable (e.g., "MACALLAN", "HENNESSY", red Campari, orange Aperol)
+• "medium" = bottle shape + color strongly matches a known category (e.g., tall Tanqueray-shaped green bottle = gin medium)
+• "low" = bottle clearly visible but you can't be confident of category
+• If you would normally say "low" on a photo with NO actual bottle → return [] instead.
 
 OUTPUT FORMAT: Return a JSON array. Each entry MUST have these 4 fields:
 {"name_en": "Brand + Type", "name_he": "Hebrew name", "category": "category_key", "confidence": "high|medium|low"}
