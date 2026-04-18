@@ -881,9 +881,24 @@ body::after{
 
 <!-- HERO -->
 <section class="hero">
-  <video class="hero-video" autoplay muted loop playsinline>
+  <video class="hero-video" autoplay muted playsinline id="hero-video" data-plays="0">
     <source src="assets/bg-video.mp4" type="video/mp4">
   </video>
+  <script>
+    // Play video twice (original + 1 repeat), then stop on the last frame
+    (function(){
+      const v = document.getElementById('hero-video');
+      if (!v) return;
+      v.addEventListener('ended', function(){
+        const plays = parseInt(v.dataset.plays || '0', 10) + 1;
+        v.dataset.plays = String(plays);
+        if (plays < 2) {
+          v.currentTime = 0;
+          v.play().catch(()=>{});
+        }
+      });
+    })();
+  </script>
   <div class="hero-overlay"></div>
   <div class="hero-content">
     <p style="font-family:var(--font-display);font-size:clamp(1.5rem,3.5vw,2.5rem);font-weight:300;color:var(--zinc-200);text-align:center;unicode-bidi:plaintext">
