@@ -424,6 +424,9 @@ function renderResults() {
     </div>`;
   }).join('');
 
+  // Low-confidence hint: suggest better photo when scanner isn't sure
+  renderConfidenceHint(taggedBottles);
+
   const suggestions = document.getElementById('ingredient-suggestions');
   suggestions.innerHTML = getAllIngredientNames()
     .map(name => `<option value="${name}">`)
@@ -433,6 +436,51 @@ function renderResults() {
 
   resultsSection.style.display = 'block';
   resultsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+/**
+ * Show a hint when scanner confidence is low.
+ * - All bottles "low" confidence → strong hint: upload better photo
+ * - Over 50% "low" confidence → softer hint: some bottles unclear
+ */
+function renderConfidenceHint(bottles) {
+  let hint = document.getElementById('confidence-hint');
+  if (!hint) {
+    hint = document.createElement('div');
+    hint.id = 'confidence-hint';
+    hint.className = 'confidence-hint';
+    const bottlesGrid = document.getElementById('bottles-grid');
+    bottlesGrid.parentElement.insertBefore(hint, bottlesGrid);
+  }
+  hint.style.display = 'none';
+  hint.innerHTML = '';
+  if (!bottles || bottles.length === 0) return;
+
+  const lowCount = bottles.filter(b => b.confidence === 'low').length;
+  const lowRatio = lowCount / bottles.length;
+
+  if (lowRatio === 1 && bottles.length >= 1) {
+    // All bottles low conf — strong warning
+    hint.style.display = 'block';
+    hint.className = 'confidence-hint hint-strong';
+    hint.innerHTML = `
+      <span class="hint-icon">📸</span>
+      <div class="hint-text">
+        <strong>הזיהוי לא בטוח</strong>
+        <span>לתוצאות טובות יותר, נסה להעלות תמונה באיכות גבוהה יותר — עם תאורה טובה ובקבוקים בפוקוס</span>
+      </div>
+    `;
+  } else if (lowRatio > 0.5) {
+    // Soft hint
+    hint.style.display = 'block';
+    hint.className = 'confidence-hint hint-soft';
+    hint.innerHTML = `
+      <span class="hint-icon">💡</span>
+      <div class="hint-text">
+        <span>חלק מהבקבוקים לא ברורים — לרוב לחיצה על "נקודה אפורה" מציגה ניחוש. לעדכון מדויק, העלה תמונה ברורה יותר</span>
+      </div>
+    `;
+  }
 }
 
 function updateMatches() {

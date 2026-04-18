@@ -314,6 +314,44 @@ body{
   display:flex;flex-wrap:wrap;gap:0.75rem;
   margin-top:1rem;justify-content:center;
 }
+
+/* ── Confidence Hint (low-quality photo warning) ── */
+.confidence-hint{
+  display:flex;align-items:flex-start;gap:0.75rem;
+  padding:0.85rem 1rem;
+  margin:0.75rem auto 1.25rem;
+  max-width:600px;
+  border-radius:10px;
+  font-size:0.9rem;
+  line-height:1.45;
+  animation:fadeIn 0.4s ease;
+}
+.confidence-hint.hint-strong{
+  background:rgba(251,191,36,0.08);
+  border:1px solid rgba(251,191,36,0.3);
+  color:#fbbf24;
+}
+.confidence-hint.hint-soft{
+  background:rgba(200,169,110,0.06);
+  border:1px solid rgba(200,169,110,0.25);
+  color:var(--gold);
+}
+.confidence-hint .hint-icon{
+  font-size:1.35rem;
+  flex-shrink:0;
+  line-height:1;
+}
+.confidence-hint .hint-text{
+  display:flex;flex-direction:column;gap:0.25rem;
+}
+.confidence-hint .hint-text strong{
+  color:var(--zinc-100);
+  font-weight:600;
+}
+@keyframes fadeIn{
+  from{opacity:0;transform:translateY(-4px);}
+  to{opacity:1;transform:translateY(0);}
+}
 .bottle-chip{
   display:flex;align-items:center;gap:0.5rem;
   padding:10px 16px;border-radius:12px;
