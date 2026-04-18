@@ -1,0 +1,53 @@
+════════════════════════════════════════════════════════════════════════
+  ACCURACY TEST — 35 images
+  API: https://cocktails-wiki.vercel.app/api/scan-bar
+════════════════════════════════════════════════════════════════════════
+  ✅ disaronno.jpg                 3364ms  single_correct         got amaretto
+  ✅ macallan-12.jpg               2876ms  single_correct         got scotch
+  ✅ jack-daniels.jpg              1999ms  single_correct         got bourbon
+  ❌ home-bar-1.jpg                3483ms  single_wrong_category  got aperol expected prosecco
+  ✅ liquor-wall-1.jpg             2583ms  shelf_pass             5 ≥ 5
+  ✅ busy-shelves-1.jpg            3401ms  shelf_pass             14 ≥ 3
+  ✅ liquor-store-1.jpg            3951ms  shelf_pass             15 ≥ 10
+  ✅ nightclub-shelf.jpg           2995ms  shelf_pass             15 ≥ 5
+  ✅ bar-shelves-1.jpg             3032ms  shelf_pass             15 ≥ 5
+  ✅ shelves-wide-1.jpg            3502ms  shelf_pass             15 ≥ 3
+  ✅ rum-closeup.jpg               2600ms  shelf_pass             3 ≥ 2
+  ✅ whisky-decanter.jpg           3599ms  shelf_pass             13 ≥ 5
+  ✅ food-plate.jpg                1598ms  edge_correct           returned []
+  ✅ coffee-cup.jpg                1494ms  edge_correct           returned []
+  ✅ restaurant-int.jpg            1872ms  edge_correct           returned []
+  ❌ cocktail-glass-1.jpg          1772ms  edge_hallucination     1 fakes: vodka
+  ✅ wine-glasses-1.jpg            1443ms  edge_correct           returned []
+  ✅ empty-glasses-1.jpg           1362ms  edge_correct           returned []
+  ✅ cocktail-iced.jpg             2267ms  edge_correct           returned []
+  ✅ cocktail-pink.jpg             2247ms  edge_correct           returned []
+  ✅ beer-taps.jpg                 1702ms  edge_correct           returned []
+  ✅ beer-mug.jpg                  2041ms  edge_correct           returned []
+  ✅ bar-behind-1.jpg              1566ms  edge_correct           returned []
+  ✅ cocktail-top.jpg              2629ms  edge_correct           returned []
+  ✅ bartender-pour.jpg            1582ms  edge_correct           returned []
+  ✅ cocktail-single.jpg           1601ms  edge_correct           returned []
+  ✅ bar-counter-1.jpg             1757ms  edge_correct           returned []
+  ✅ bar-shelves-2.jpg             1771ms  edge_correct           returned []
+  ✅ bottles-lineup.jpg            1681ms  edge_correct           returned []
+  ✅ bottles-varied.jpg            1739ms  edge_correct           returned []
+  ✅ spirits-shelf.jpg             1626ms  edge_correct           returned []
+  ✅ cocktail-bar-1.jpg            1716ms  edge_correct           returned []
+  ✅ backlit-shelf-1.jpg           2540ms  edge_correct           returned []
+  ❌ absolut-vodka.jpg             2957ms  edge_hallucination     2 fakes: syrup,syrup
+  ❌ hennessy-vs.jpg               8762ms  edge_hallucination     1 fakes: prosecco
+
+════════════════════════════════════════════════════════════════════════
+  CATEGORY ACCURACY:  75.0%  (3/4)   target ≥ 95%
+  HALLUCINATION-FREE: 87.0%  (20/23)   target 100%
+  SHELF RECALL:       100.0%  (8/8)   target ≥ 90%
+════════════════════════════════════════════════════════════════════════
+
+  FAILURES:
+    home-bar-1.jpg               [single_wrong_category] got aperol expected prosecco
+    cocktail-glass-1.jpg         [edge_hallucination] 1 fakes: vodka
+    absolut-vodka.jpg            [edge_hallucination] 2 fakes: syrup,syrup
+    hennessy-vs.jpg              [edge_hallucination] 1 fakes: prosecco
+
+  Average response: 2489ms
