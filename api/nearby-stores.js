@@ -10,9 +10,15 @@ export default async function handler(req, res) {
   if (req.method === 'OPTIONS') return res.status(200).end();
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
-  const { lat, lng } = req.body;
-  if (lat === undefined || lat === null || lng === undefined || lng === null) {
+  const { lat: rawLat, lng: rawLng } = req.body;
+  if (rawLat === undefined || rawLat === null || rawLng === undefined || rawLng === null) {
     return res.status(400).json({ error: 'lat/lng required' });
+  }
+  const lat = Number(rawLat);
+  const lng = Number(rawLng);
+  if (!Number.isFinite(lat) || !Number.isFinite(lng) ||
+      lat < -90 || lat > 90 || lng < -180 || lng > 180) {
+    return res.status(400).json({ error: 'lat/lng must be valid numeric coordinates' });
   }
 
   const apiKey = process.env.GOOGLE_PLACES_API_KEY;

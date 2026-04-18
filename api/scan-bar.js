@@ -95,7 +95,7 @@ Example: {"name_en": "Absolut Vodka", "name_he": "וודקה אבסולוט", "c
   newrelic.addCustomAttributes({ image_size_kb: imageSizeKb });
 
   const model =
-    process.env.GEMINI_MODEL?.trim() || 'gemini-2.0-flash';
+    process.env.GEMINI_MODEL?.trim() || 'gemini-2.5-flash';
 
   try {
     const geminiStart = Date.now();
