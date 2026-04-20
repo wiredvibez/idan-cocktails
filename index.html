@@ -5,6 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Cocktails Wiki</title>
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<!-- Lottie-web (for animated prep step icons in expanded cards) -->
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/bodymovin/5.12.2/lottie_light.min.js"></script>
+<script defer src="js/lottie-steps.js"></script>
 <!-- NEW RELIC BROWSER AGENT -->
 <script type="text/javascript">
 ;window.NREUM||(NREUM={});NREUM.init={distributed_tracing:{enabled:true},performance:{capture_measures:true},browser_consent_mode:{enabled:false},privacy:{cookies_enabled:true},ajax:{deny_list:["bam.eu01.nr-data.net"],capture_payloads:'none'}};
@@ -652,26 +655,16 @@ body{
 }
 .sort-select option{background:var(--zinc-900);color:var(--zinc-100)}
 
-/* ── Animated prep step icons ── */
+/* ── Lottie prep step icons ── */
 .step-icon{
-  display:inline-flex;align-items:center;justify-content:center;
-  width:22px;height:22px;
-  margin-inline-end:0.5rem;
-  vertical-align:-5px;
-  color:var(--gold);
+  display:inline-block;
+  width:34px;height:34px;
+  margin-inline-end:0.55rem;
+  vertical-align:-10px;
   flex-shrink:0;
+  line-height:0;
 }
-.step-icon svg{width:100%;height:100%}
-@keyframes shake-anim{0%,100%{transform:translateX(0) rotate(0)}25%{transform:translateX(-2px) rotate(-8deg)}75%{transform:translateX(2px) rotate(8deg)}}
-@keyframes stir-anim{0%{transform:rotate(0)}100%{transform:rotate(360deg)}}
-@keyframes muddle-anim{0%,100%{transform:translateY(0)}50%{transform:translateY(3px)}}
-@keyframes pour-anim{0%,100%{transform:rotate(0)}50%{transform:rotate(-25deg)}}
-@keyframes strain-anim{0%,100%{opacity:0.5}50%{opacity:1}}
-.step-icon.shake svg{animation:shake-anim 0.7s ease-in-out infinite}
-.step-icon.stir svg{animation:stir-anim 3s linear infinite;transform-origin:center}
-.step-icon.muddle svg{animation:muddle-anim 1s ease-in-out infinite}
-.step-icon.pour svg{animation:pour-anim 1.5s ease-in-out infinite;transform-origin:30% 30%}
-.step-icon.strain svg{animation:strain-anim 1.6s ease-in-out infinite}
+.step-icon svg{width:100%;height:100%;display:block}
 
 /* ── No Results ── */
 .no-results{
@@ -1048,24 +1041,16 @@ function sortComparator(key) {
   }
 }
 
-// Prep step icons — detect Hebrew bartending verbs and return animated SVG
+// Prep step icons — detect Hebrew bartending verbs and return a Lottie kind
+// (shake/stir/muddle/strain/pour). Returns null if no verb matches.
+// The actual SVG is rendered at runtime by js/lottie-steps.js
 function stepIcon(stepText) {
   const t = stepText;
-  // shake
-  if (/\bנער\b|\bלנער\b|שייקר|שייק/.test(t)) return { cls: "shake",
-    svg: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3h8l-1 5H9z"/><path d="M9 8l-2 11a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2L15 8"/></svg>' };
-  // stir / mix
-  if (/ערבב|לערבב|ערבוב|מערבבים|מערבל|להקציף/.test(t)) return { cls: "stir",
-    svg: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 8h14l-1 12H6z"/><path d="M12 2v6"/></svg>' };
-  // muddle
-  if (/כתוש|כותש|מעיכ|מועכ|ללחוץ/.test(t)) return { cls: "muddle",
-    svg: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="3" width="6" height="12" rx="1"/><path d="M12 15v6"/><circle cx="12" cy="21" r="1"/></svg>' };
-  // strain
-  if (/סנן|מסננ|לסנן|לצקת דרך/.test(t)) return { cls: "strain",
-    svg: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h16l-2 4H6z"/><path d="M8 12v3M12 12v4M16 12v3"/></svg>' };
-  // pour
-  if (/מוזג|יוצק|שופכ|מזלף|מוסיפ/.test(t)) return { cls: "pour",
-    svg: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 4h6v8l4 2v4a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V4z"/><path d="M15 8l3-2"/></svg>' };
+  if (/\bנער\b|\bלנער\b|שייקר|שייק/.test(t))                  return { kind: "shake" };
+  if (/ערבב|לערבב|ערבוב|מערבבים|מערבל|להקציף/.test(t))          return { kind: "stir" };
+  if (/כתוש|כותש|מעיכ|מועכ|ללחוץ/.test(t))                     return { kind: "muddle" };
+  if (/סנן|מסננ|לסנן|לצקת דרך/.test(t))                          return { kind: "strain" };
+  if (/מוזג|יוצק|שופכ|מזלף|מוסיפ/.test(t))                     return { kind: "pour" };
   return null;
 }
 
@@ -1193,7 +1178,7 @@ function renderCocktails() {
             <ol class="recipe-steps" dir="rtl">
               ${c.steps.map(s => {
                 const ic = stepIcon(s);
-                const iconHtml = ic ? `<span class="step-icon ${ic.cls}" aria-hidden="true">${ic.svg}</span>` : '';
+                const iconHtml = ic ? `<span class="step-icon" data-lottie="${ic.kind}" aria-hidden="true"></span>` : '';
                 return `<li>${iconHtml}<span>${s}</span></li>`;
               }).join("")}
             </ol>
@@ -1234,6 +1219,9 @@ function renderCocktails() {
   });
 
   observeCards();
+
+  // Mount Lottie animations on any new step icons this render added
+  if (window.initLottieSteps) window.initLottieSteps();
 }
 
 // ═══════════════════════════════════════
