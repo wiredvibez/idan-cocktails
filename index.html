@@ -27,9 +27,9 @@
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
-  --gold:#C8A96E;
+  --gold:#D4B575;
   --gold-dim:#A08454;
-  --gold-glow:rgba(200,169,110,0.15);
+  --gold-glow:rgba(212,181,117,0.18);
   --zinc-950:#09090b;
   --zinc-900:#18181b;
   --zinc-800:#27272a;
@@ -575,7 +575,11 @@ body{
   position:relative;
   counter-increment:step;
   font-weight:300;
+  display:flex;
+  align-items:flex-start;
+  gap:0;
 }
+.recipe-steps li > span:last-child{flex:1}
 .recipe-steps li::before{
   content:counter(step);
   position:absolute;
@@ -615,6 +619,90 @@ body{
 @keyframes scrollHintIn{
   to{opacity:1;transform:translate(-50%,0)}
 }
+
+/* ── Surprise button ── */
+.pill-surprise{
+  background:linear-gradient(135deg,rgba(212,181,117,0.18),rgba(212,181,117,0.06));
+  border-color:var(--gold-dim) !important;
+  color:var(--gold) !important;
+}
+.pill-surprise:hover{background:linear-gradient(135deg,rgba(212,181,117,0.28),rgba(212,181,117,0.12))}
+.pill-surprise .pill-icon{animation:spin 8s linear infinite}
+@keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
+
+/* ── Favorites pill + count ── */
+.pill-favorites{color:#ef4444 !important;border-color:rgba(239,68,68,0.3) !important}
+.pill-favorites.active{background:rgba(239,68,68,0.12) !important;border-color:#ef4444 !important}
+.pill-favorites .pill-icon{fill:currentColor}
+.fav-count{
+  display:inline-flex;align-items:center;justify-content:center;
+  min-width:20px;height:20px;padding:0 6px;margin-inline-start:4px;
+  background:rgba(239,68,68,0.25);border-radius:10px;
+  font-size:0.72rem;font-weight:700;line-height:1;
+}
+.fav-count:empty,.fav-count[data-count="0"]{display:none}
+
+/* ── Sort select ── */
+.sort-select{
+  padding:0.5rem 2rem 0.5rem 0.85rem;
+  background:rgba(255,255,255,0.04);
+  border:1px solid rgba(212,181,117,0.2);
+  border-radius:999px;
+  color:var(--zinc-200);
+  font-family:var(--font-body);font-size:0.85rem;
+  cursor:pointer;
+  appearance:none;
+  -webkit-appearance:none;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23D4B575' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:left 0.65rem center;background-size:14px;
+  transition:border-color 0.2s,background-color 0.2s;
+}
+.sort-select:hover,.sort-select:focus{
+  border-color:var(--gold);
+  background-color:rgba(212,181,117,0.06);
+  outline:none;
+}
+.sort-select option{background:var(--zinc-900);color:var(--zinc-100)}
+
+/* ── Favorite heart on card ── */
+.card-fav{
+  position:absolute;top:0.6rem;inset-inline-start:0.6rem;
+  width:38px;height:38px;
+  display:flex;align-items:center;justify-content:center;
+  background:rgba(0,0,0,0.55);
+  border:1px solid rgba(255,255,255,0.1);
+  border-radius:999px;
+  cursor:pointer;z-index:3;
+  transition:transform 0.2s,background 0.2s,border-color 0.2s;
+  backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);
+}
+.card-fav:hover{transform:scale(1.1);background:rgba(0,0,0,0.7);border-color:rgba(239,68,68,0.5)}
+.card-fav svg{width:20px;height:20px;stroke:#fff;stroke-width:2;fill:none;transition:fill 0.25s,stroke 0.25s}
+.card-fav.favorited svg{fill:#ef4444;stroke:#ef4444}
+.card-fav.favorited{border-color:rgba(239,68,68,0.5)}
+@keyframes heart-pop{0%{transform:scale(1)}40%{transform:scale(1.35)}100%{transform:scale(1)}}
+.card-fav.just-favorited svg{animation:heart-pop 0.45s ease}
+
+/* ── Animated prep step icons ── */
+.step-icon{
+  display:inline-flex;align-items:center;justify-content:center;
+  width:22px;height:22px;
+  margin-inline-end:0.5rem;
+  vertical-align:-5px;
+  color:var(--gold);
+  flex-shrink:0;
+}
+.step-icon svg{width:100%;height:100%}
+@keyframes shake-anim{0%,100%{transform:translateX(0) rotate(0)}25%{transform:translateX(-2px) rotate(-8deg)}75%{transform:translateX(2px) rotate(8deg)}}
+@keyframes stir-anim{0%{transform:rotate(0)}100%{transform:rotate(360deg)}}
+@keyframes muddle-anim{0%,100%{transform:translateY(0)}50%{transform:translateY(3px)}}
+@keyframes pour-anim{0%,100%{transform:rotate(0)}50%{transform:rotate(-25deg)}}
+@keyframes strain-anim{0%,100%{opacity:0.5}50%{opacity:1}}
+.step-icon.shake svg{animation:shake-anim 0.7s ease-in-out infinite}
+.step-icon.stir svg{animation:stir-anim 3s linear infinite;transform-origin:center}
+.step-icon.muddle svg{animation:muddle-anim 1s ease-in-out infinite}
+.step-icon.pour svg{animation:pour-anim 1.5s ease-in-out infinite;transform-origin:30% 30%}
+.step-icon.strain svg{animation:strain-anim 1.6s ease-in-out infinite}
 
 /* ── No Results ── */
 .no-results{
@@ -917,6 +1005,14 @@ body::after{
   <div class="nav-inner">
     <div class="filter-pills" role="group" aria-label="סינון לפי קטגוריה">
       <a href="bar-scanner.html" class="pill nav-pill-scanner" style="background:rgba(200,169,110,0.12);border-color:var(--gold-dim);color:var(--gold);text-decoration:none"><svg class="pill-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 22h8"/><path d="M12 11v11"/><path d="m19 3-7 8-7-8h14z"/></svg><span>מה יש לי בבר?</span></a>
+      <button type="button" class="pill pill-surprise" id="surpriseBtn" aria-label="הפתע אותי">
+        <svg class="pill-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>
+        <span>הפתע אותי</span>
+      </button>
+      <button class="pill pill-favorites" data-filter="favorites" aria-label="קוקטיילים שמורים">
+        <svg class="pill-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+        <span>שמורים</span> <span class="fav-count" id="favCount">0</span>
+      </button>
       <button class="pill active" data-filter="all">הכל</button>
       <button class="pill" data-filter="strong">חזק ומר</button>
       <button class="pill" data-filter="sweet">מתוק וקרמי</button>
@@ -926,6 +1022,15 @@ body::after{
     <div class="search-box">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
       <input type="text" id="searchInput" dir="rtl" placeholder="חפש קוקטייל…" aria-label="חיפוש קוקטייל" autocomplete="off">
+      <select id="sortSelect" class="sort-select" dir="rtl" aria-label="מיין לפי">
+        <option value="default">סדר ברירת מחדל</option>
+        <option value="difficulty-asc">קלים תחילה</option>
+        <option value="difficulty-desc">מאתגרים תחילה</option>
+        <option value="sweet-desc">מתוקים תחילה</option>
+        <option value="sour-desc">חמוצים תחילה</option>
+        <option value="complex-desc">מורכבים תחילה</option>
+        <option value="name-asc">לפי שם (א-ת)</option>
+      </select>
     </div>
   </div>
 </nav>
@@ -961,45 +1066,133 @@ function loadCardImage(card, cocktailName) {
 //  RENDER
 // ═══════════════════════════════════════
 let activeFilter = "all";
+let activeSort = "default";
 let searchQuery = "";
+
+// Favorites: persisted in localStorage
+const FAV_KEY = "cocktailFavs_v1";
+function loadFavorites() {
+  try { return new Set(JSON.parse(localStorage.getItem(FAV_KEY) || "[]")); }
+  catch { return new Set(); }
+}
+function saveFavorites(set) {
+  try { localStorage.setItem(FAV_KEY, JSON.stringify([...set])); } catch {}
+}
+let favorites = loadFavorites();
+function isFavorite(name) { return favorites.has(name); }
+function toggleFavorite(name) {
+  if (favorites.has(name)) favorites.delete(name); else favorites.add(name);
+  saveFavorites(favorites);
+  updateFavCount();
+}
+function updateFavCount() {
+  const el = document.getElementById("favCount");
+  if (el) {
+    el.textContent = favorites.size > 0 ? favorites.size : "";
+    el.setAttribute("data-count", favorites.size);
+  }
+}
+
+// Sort comparator
+const DIFF_RANK = { easy: 1, medium: 2, hard: 3 };
+function sortComparator(key) {
+  switch (key) {
+    case "difficulty-asc":  return (a,b) => (DIFF_RANK[a.difficulty]||2) - (DIFF_RANK[b.difficulty]||2);
+    case "difficulty-desc": return (a,b) => (DIFF_RANK[b.difficulty]||2) - (DIFF_RANK[a.difficulty]||2);
+    case "sweet-desc":      return (a,b) => (b.sweet||0) - (a.sweet||0);
+    case "sour-desc":       return (a,b) => (b.sour||0) - (a.sour||0);
+    case "complex-desc":    return (a,b) => (b.complex||0) - (a.complex||0);
+    case "name-asc":        return (a,b) => a.name.localeCompare(b.name, "he");
+    default:                return null;
+  }
+}
+
+// Prep step icons — detect Hebrew bartending verbs and return animated SVG
+function stepIcon(stepText) {
+  const t = stepText;
+  // shake
+  if (/\bנער\b|\bלנער\b|שייקר|שייק/.test(t)) return { cls: "shake",
+    svg: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3h8l-1 5H9z"/><path d="M9 8l-2 11a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2L15 8"/></svg>' };
+  // stir / mix
+  if (/ערבב|לערבב|ערבוב|מערבבים|מערבל|להקציף/.test(t)) return { cls: "stir",
+    svg: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 8h14l-1 12H6z"/><path d="M12 2v6"/></svg>' };
+  // muddle
+  if (/כתוש|כותש|מעיכ|מועכ|ללחוץ/.test(t)) return { cls: "muddle",
+    svg: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="3" width="6" height="12" rx="1"/><path d="M12 15v6"/><circle cx="12" cy="21" r="1"/></svg>' };
+  // strain
+  if (/סנן|מסננ|לסנן|לצקת דרך/.test(t)) return { cls: "strain",
+    svg: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h16l-2 4H6z"/><path d="M8 12v3M12 12v4M16 12v3"/></svg>' };
+  // pour
+  if (/מוזג|יוצק|שופכ|מזלף|מוסיפ/.test(t)) return { cls: "pour",
+    svg: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 4h6v8l4 2v4a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V4z"/><path d="M15 8l3-2"/></svg>' };
+  return null;
+}
 
 function renderCocktails() {
   const main = document.getElementById("mainContent");
   main.innerHTML = "";
 
-  const filtered = cocktails.filter(c => {
-    const matchCat = activeFilter === "all" || c.category === activeFilter;
+  const isFavsView = activeFilter === "favorites";
+  let filtered = cocktails.filter(c => {
+    const matchCat = activeFilter === "all" || isFavsView || c.category === activeFilter;
+    const matchFav = !isFavsView || isFavorite(c.name);
     const q = searchQuery.toLowerCase();
     const matchSearch = q === "" ||
       c.name.toLowerCase().includes(q) ||
       c.desc.toLowerCase().includes(q) ||
       c.ingredients.some(i => i.item.toLowerCase().includes(q));
-    return matchCat && matchSearch;
+    return matchCat && matchFav && matchSearch;
   });
 
+  const cmp = sortComparator(activeSort);
+  const sortApplied = !!cmp;
+  if (cmp) filtered = [...filtered].sort(cmp);
+
   if (filtered.length === 0) {
-    main.innerHTML = '<div class="no-results" dir="rtl">לא נמצאו קוקטיילים התואמים לחיפוש שלך.</div>';
+    const msgTitle = isFavsView
+      ? "עוד לא שמרת קוקטיילים"
+      : searchQuery
+        ? `לא נמצאו תוצאות עבור "${searchQuery}"`
+        : "לא נמצאו קוקטיילים התואמים לסינון";
+    const msgSub = isFavsView
+      ? "לחץ על הלב ♥ בכל כרטיס כדי לשמור קוקטייל"
+      : "נסה מילת חיפוש אחרת או הסר סינון";
+    main.innerHTML = `<div class="no-results" dir="rtl" style="text-align:center">
+      <div style="font-size:1.2rem;margin-bottom:0.5rem;color:var(--zinc-200)">${msgTitle}</div>
+      <div style="font-size:0.95rem;color:var(--zinc-500);margin-bottom:1.5rem">${msgSub}</div>
+      <button type="button" onclick="resetAllFilters()" class="pill" style="margin:0 auto">נקה את כל הסינונים</button>
+    </div>`;
     return;
   }
 
-  const groups = {};
-  filtered.forEach(c => {
-    if (!groups[c.category]) groups[c.category] = [];
-    groups[c.category].push(c);
-  });
+  // Decide layout: flat list when sort is applied or viewing favorites, else grouped by category
+  const flatMode = sortApplied || isFavsView;
+  let groups;
+  if (flatMode) {
+    groups = { all: filtered };
+  } else {
+    groups = {};
+    filtered.forEach(c => {
+      if (!groups[c.category]) groups[c.category] = [];
+      groups[c.category].push(c);
+    });
+  }
 
-  const catOrder = ["strong", "sweet", "sour", "fruity"];
+  const catOrder = flatMode ? ["all"] : ["strong", "sweet", "sour", "fruity"];
   catOrder.forEach(cat => {
     if (!groups[cat]) return;
     const section = document.createElement("section");
     section.setAttribute('role', 'region');
-    section.setAttribute('aria-label', categories[cat].name);
     const n = groups[cat].length;
+    const sectionName = flatMode
+      ? (isFavsView ? "הקוקטיילים השמורים שלך" : "תוצאות ממוינות")
+      : categories[cat].name;
+    section.setAttribute('aria-label', sectionName);
     section.innerHTML = `
       <div class="section-header" dir="rtl">
         <div class="section-header-inner">
-          <h2 class="section-title">${categories[cat].name}</h2>
-          <div class="section-count" aria-label="${n} קוקטיילים בקטגוריה">
+          <h2 class="section-title">${sectionName}</h2>
+          <div class="section-count" aria-label="${n} קוקטיילים">
             <span class="section-count-num">${n}</span>
             <span>קוקטיילים</span>
           </div>
@@ -1032,6 +1225,9 @@ function renderCocktails() {
               <path d="M8 22h8"/><path d="M12 11v11"/><path d="m19 3-7 8-7-8h14z"/>
             </svg>
           </div>
+          <button type="button" class="card-fav ${isFavorite(c.name) ? 'favorited' : ''}" aria-label="${isFavorite(c.name) ? 'הסר משמורים' : 'שמור'}" data-name="${c.name}" onclick="event.stopPropagation(); handleFavClick(this)">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+          </button>
         </div>
         <div class="card-body">
           <div class="card-top">
@@ -1063,7 +1259,11 @@ function renderCocktails() {
             </ul>
             <div class="recipe-section-title">הכנה</div>
             <ol class="recipe-steps" dir="rtl">
-              ${c.steps.map(s => `<li>${s}</li>`).join("")}
+              ${c.steps.map(s => {
+                const ic = stepIcon(s);
+                const iconHtml = ic ? `<span class="step-icon ${ic.cls}" aria-hidden="true">${ic.svg}</span>` : '';
+                return `<li>${iconHtml}<span>${s}</span></li>`;
+              }).join("")}
             </ol>
             <div class="radar-section">
               <button type="button" class="radar-btn" onclick="event.stopPropagation(); findNearbyStores(this, '${c.name.replace(/'/g, "\\'")}', ${JSON.stringify(c.ingredients).replace(/"/g, '&quot;')})"><span class="radar-btn-icon" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg></span>מצא חנויות קרובות</button>
@@ -1150,6 +1350,81 @@ document.getElementById("searchInput").addEventListener("input", (e) => {
   searchQuery = e.target.value.trim();
   renderCocktails();
 });
+
+// Sort dropdown
+document.getElementById("sortSelect").addEventListener("change", (e) => {
+  activeSort = e.target.value;
+  renderCocktails();
+  requestAnimationFrame(() => scrollToCocktailList());
+});
+
+// Favorite heart click (delegated via handleFavClick from card onclick)
+function handleFavClick(btn) {
+  const name = btn.dataset.name;
+  toggleFavorite(name);
+  btn.classList.toggle("favorited");
+  const justFav = btn.classList.contains("favorited");
+  btn.setAttribute("aria-label", justFav ? "הסר משמורים" : "שמור");
+  if (justFav) {
+    btn.classList.add("just-favorited");
+    setTimeout(() => btn.classList.remove("just-favorited"), 500);
+  }
+  // If we're viewing favorites, re-render so unfavorited cards disappear
+  if (activeFilter === "favorites") renderCocktails();
+}
+
+// Surprise Me button
+document.getElementById("surpriseBtn").addEventListener("click", () => {
+  // Use currently-filtered list for relevance (respects filter + search)
+  const pool = cocktails.filter(c => {
+    const matchCat = activeFilter === "all" || activeFilter === "favorites"
+      ? (activeFilter !== "favorites" || isFavorite(c.name))
+      : c.category === activeFilter;
+    const q = searchQuery.toLowerCase();
+    const matchSearch = q === "" ||
+      c.name.toLowerCase().includes(q) ||
+      c.desc.toLowerCase().includes(q) ||
+      c.ingredients.some(i => i.item.toLowerCase().includes(q));
+    return matchCat && matchSearch;
+  });
+  if (pool.length === 0) return;
+  const pick = pool[Math.floor(Math.random() * pool.length)];
+  // Find the rendered card by matching its h3
+  setTimeout(() => {
+    const cards = Array.from(document.querySelectorAll(".cocktail-card"));
+    const target = cards.find(card => {
+      const nm = card.querySelector(".card-name");
+      return nm && nm.textContent === pick.name;
+    });
+    if (target) {
+      document.querySelectorAll(".cocktail-card.expanded").forEach(el => {
+        el.classList.remove("expanded");
+        el.setAttribute("aria-expanded", "false");
+      });
+      target.classList.add("expanded");
+      target.setAttribute("aria-expanded", "true");
+      target.scrollIntoView({ behavior: "smooth", block: "center" });
+    }
+  }, 50);
+});
+
+// Reset-all used by empty-state button
+function resetAllFilters() {
+  activeFilter = "all";
+  activeSort = "default";
+  searchQuery = "";
+  document.querySelectorAll(".pill").forEach(p => p.classList.remove("active"));
+  const allPill = document.querySelector('.pill[data-filter="all"]');
+  if (allPill) allPill.classList.add("active");
+  const input = document.getElementById("searchInput");
+  if (input) input.value = "";
+  const sort = document.getElementById("sortSelect");
+  if (sort) sort.value = "default";
+  renderCocktails();
+}
+
+// Init favorite count badge
+updateFavCount();
 
 // Initial render
 renderCocktails();
