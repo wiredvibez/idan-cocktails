@@ -359,38 +359,103 @@
 
   window.LOTTIE_STEPS = { shake, stir, muddle, strain, pour };
 
-  // Track already-mounted nodes (avoid double-mount when re-rendered)
-  const mounted = new WeakSet();
+  // Map node → Lottie instance (lets us pause/resume per card)
+  const instances = new WeakMap();
+  // Limit: play each animation twice, then freeze on the final frame
+  const LOOP_LIMIT = 2;
+
+  function prefersReducedMotion() {
+    return typeof window.matchMedia === "function" &&
+           window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  }
 
   /**
    * Scan the DOM for any .step-icon[data-lottie] nodes that haven't
    * been initialized yet, and load the matching Lottie animation.
    * Safe to call multiple times.
+   *
+   * Fixes applied (from design critique):
+   *   #1 — each animation plays LOOP_LIMIT times then freezes on the last frame
+   *   #2 — prefers-reduced-motion: freeze on first frame (no motion)
+   *   #3 — exposes window.pauseLottieIn(el) / playLottieIn(el) so the card
+   *         click handler can pause when a card collapses and replay when
+   *         it expands. Each expansion plays the LOOP_LIMIT cycle fresh.
    */
   window.initLottieSteps = function () {
     if (typeof window.lottie === "undefined") {
-      // lottie-web not loaded yet — try again shortly
       setTimeout(window.initLottieSteps, 150);
       return;
     }
     const nodes = document.querySelectorAll(".step-icon[data-lottie]");
     nodes.forEach(node => {
-      if (mounted.has(node)) return;
+      if (instances.has(node)) return;
       const kind = node.dataset.lottie;
       const data = window.LOTTIE_STEPS[kind];
       if (!data) return;
       try {
-        window.lottie.loadAnimation({
+        // Mount PAUSED on the first frame. We'll play only when the
+        // containing card is expanded (via playLottieIn).
+        const anim = window.lottie.loadAnimation({
           container: node,
           renderer: "svg",
-          loop: true,
-          autoplay: true,
+          loop: false,
+          autoplay: false,
           animationData: data
         });
-        mounted.add(node);
+        anim.goToAndStop(0, true);
+        instances.set(node, anim);
       } catch (e) {
         console.warn("Lottie failed for", kind, e);
       }
+    });
+
+    // If a card is already .expanded at mount time (unlikely but possible
+    // on navigation back / deep-link), play its Lottie instances.
+    if (!prefersReducedMotion()) {
+      document.querySelectorAll(".cocktail-card.expanded").forEach(card => {
+        if (window.playLottieIn) window.playLottieIn(card);
+      });
+    }
+  };
+
+  /**
+   * Pause every Lottie inside the given element (call when a card collapses).
+   */
+  window.pauseLottieIn = function (el) {
+    if (!el) return;
+    el.querySelectorAll(".step-icon[data-lottie]").forEach(node => {
+      const anim = instances.get(node);
+      if (anim) anim.pause();
+    });
+  };
+
+  /**
+   * Restart every Lottie inside the given element from frame 0 and play
+   * LOOP_LIMIT times, then freeze. Call when a card expands.
+   * No-op when prefers-reduced-motion is set.
+   */
+  window.playLottieIn = function (el) {
+    if (!el) return;
+    const reduced = prefersReducedMotion();
+    if (reduced) return;                    // static icon only — never play
+    el.querySelectorAll(".step-icon[data-lottie]").forEach(node => {
+      const anim = instances.get(node);
+      if (!anim) return;
+      // Re-enable looping so the next run goes through the cycle again,
+      // then cap it with a fresh counter.
+      anim.loop = true;
+      let loops = 0;
+      // Clean slate: remove previous listeners by using a fresh bound fn
+      anim.removeEventListener && anim.removeEventListener("loopComplete", node.__loopHandler);
+      node.__loopHandler = function () {
+        loops++;
+        if (loops >= LOOP_LIMIT) {
+          anim.loop = false;
+          anim.addEventListener("complete", () => anim.pause());
+        }
+      };
+      anim.addEventListener("loopComplete", node.__loopHandler);
+      anim.goToAndPlay(0, true);
     });
   };
 

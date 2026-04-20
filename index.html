@@ -1195,10 +1195,14 @@ function renderCocktails() {
         document.querySelectorAll(".cocktail-card.expanded").forEach(el => {
           el.classList.remove("expanded");
           el.setAttribute('aria-expanded', 'false');
+          // Pause Lottie animations in the card being collapsed
+          if (window.pauseLottieIn) window.pauseLottieIn(el);
         });
         if (!wasExpanded) {
           card.classList.add("expanded");
           card.setAttribute('aria-expanded', 'true');
+          // Replay Lottie animations from frame 0 on expand (capped at LOOP_LIMIT)
+          if (window.playLottieIn) window.playLottieIn(card);
           setTimeout(() => {
             card.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
           }, 350);
@@ -1220,7 +1224,9 @@ function renderCocktails() {
 
   observeCards();
 
-  // Mount Lottie animations on any new step icons this render added
+  // Mount Lottie animations on any new step icons this render added.
+  // Animations mount PAUSED at frame 0 — playLottieIn starts them when a
+  // card expands, pauseLottieIn stops them when it collapses.
   if (window.initLottieSteps) window.initLottieSteps();
 }
 
