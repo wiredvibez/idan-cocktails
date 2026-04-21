@@ -381,11 +381,30 @@
    *         click handler can pause when a card collapses and replay when
    *         it expands. Each expansion plays the LOOP_LIMIT cycle fresh.
    */
+  function attachLoopCap(anim) {
+    // Count loops; freeze after LOOP_LIMIT cycles on the final frame.
+    let loops = 0;
+    const onLoop = () => {
+      loops++;
+      if (loops >= LOOP_LIMIT) {
+        anim.loop = false;
+        anim.addEventListener("complete", () => anim.pause());
+      }
+    };
+    anim.addEventListener("loopComplete", onLoop);
+    // Return a reset fn so we can re-arm for replay
+    return function reset() {
+      loops = 0;
+      anim.loop = true;
+    };
+  }
+
   window.initLottieSteps = function () {
     if (typeof window.lottie === "undefined") {
       setTimeout(window.initLottieSteps, 150);
       return;
     }
+    const reduced = prefersReducedMotion();
     const nodes = document.querySelectorAll(".step-icon[data-lottie]");
     nodes.forEach(node => {
       if (instances.has(node)) return;
@@ -393,29 +412,26 @@
       const data = window.LOTTIE_STEPS[kind];
       if (!data) return;
       try {
-        // Mount PAUSED on the first frame. We'll play only when the
-        // containing card is expanded (via playLottieIn).
         const anim = window.lottie.loadAnimation({
           container: node,
           renderer: "svg",
-          loop: false,
-          autoplay: false,
+          loop: !reduced,                 // infinite disabled via LOOP_LIMIT below
+          autoplay: !reduced,             // play immediately when not reduced
           animationData: data
         });
-        anim.goToAndStop(0, true);
-        instances.set(node, anim);
+
+        if (reduced) {
+          // Freeze on first frame — no motion
+          anim.goToAndStop(0, true);
+          instances.set(node, { anim, reset: () => {} });
+        } else {
+          const reset = attachLoopCap(anim);
+          instances.set(node, { anim, reset });
+        }
       } catch (e) {
         console.warn("Lottie failed for", kind, e);
       }
     });
-
-    // If a card is already .expanded at mount time (unlikely but possible
-    // on navigation back / deep-link), play its Lottie instances.
-    if (!prefersReducedMotion()) {
-      document.querySelectorAll(".cocktail-card.expanded").forEach(card => {
-        if (window.playLottieIn) window.playLottieIn(card);
-      });
-    }
   };
 
   /**
@@ -424,38 +440,24 @@
   window.pauseLottieIn = function (el) {
     if (!el) return;
     el.querySelectorAll(".step-icon[data-lottie]").forEach(node => {
-      const anim = instances.get(node);
-      if (anim) anim.pause();
+      const rec = instances.get(node);
+      if (rec && rec.anim) rec.anim.pause();
     });
   };
 
   /**
-   * Restart every Lottie inside the given element from frame 0 and play
-   * LOOP_LIMIT times, then freeze. Call when a card expands.
+   * Replay every Lottie inside the given element from frame 0 and run
+   * LOOP_LIMIT cycles, then freeze. Call when a card expands.
    * No-op when prefers-reduced-motion is set.
    */
   window.playLottieIn = function (el) {
     if (!el) return;
-    const reduced = prefersReducedMotion();
-    if (reduced) return;                    // static icon only — never play
+    if (prefersReducedMotion()) return;
     el.querySelectorAll(".step-icon[data-lottie]").forEach(node => {
-      const anim = instances.get(node);
-      if (!anim) return;
-      // Re-enable looping so the next run goes through the cycle again,
-      // then cap it with a fresh counter.
-      anim.loop = true;
-      let loops = 0;
-      // Clean slate: remove previous listeners by using a fresh bound fn
-      anim.removeEventListener && anim.removeEventListener("loopComplete", node.__loopHandler);
-      node.__loopHandler = function () {
-        loops++;
-        if (loops >= LOOP_LIMIT) {
-          anim.loop = false;
-          anim.addEventListener("complete", () => anim.pause());
-        }
-      };
-      anim.addEventListener("loopComplete", node.__loopHandler);
-      anim.goToAndPlay(0, true);
+      const rec = instances.get(node);
+      if (!rec || !rec.anim) return;
+      rec.reset();                      // reset loop counter
+      rec.anim.goToAndPlay(0, true);
     });
   };
 
