@@ -713,6 +713,162 @@ button:active,[role="button"]:active{
 }
 .cocktail-card.expanded .card-chevron{transform:translateX(-50%) rotate(180deg);color:var(--gold)}
 
+/* ── Surprise Me Modal ── */
+.surprise-modal{
+  position:fixed;inset:0;z-index:1000;
+  display:none;
+  align-items:center;justify-content:center;
+  padding:1.5rem;
+}
+.surprise-modal.open{display:flex;animation:surprise-in 0.35s cubic-bezier(.2,.8,.3,1.1)}
+.surprise-backdrop{
+  position:absolute;inset:0;
+  background:radial-gradient(ellipse at center,rgba(0,0,0,0.55) 0%,rgba(0,0,0,0.9) 80%);
+  backdrop-filter:blur(8px);
+  -webkit-backdrop-filter:blur(8px);
+}
+.surprise-sheet{
+  position:relative;z-index:1;
+  width:min(560px,100%);max-height:90vh;
+  overflow-y:auto;
+  background:linear-gradient(180deg,rgba(24,24,27,0.98),rgba(15,15,17,0.98));
+  border:1px solid rgba(212,181,117,0.25);
+  border-radius:20px;
+  box-shadow:0 20px 60px rgba(0,0,0,0.6),0 0 0 1px rgba(212,181,117,0.05) inset;
+  padding:1.25rem 1.1rem 1.35rem;
+}
+.surprise-close{
+  position:absolute;top:0.85rem;inset-inline-start:0.85rem;
+  width:36px;height:36px;
+  display:flex;align-items:center;justify-content:center;
+  background:rgba(255,255,255,0.04);
+  border:1px solid rgba(255,255,255,0.08);
+  border-radius:50%;
+  color:var(--zinc-300);cursor:pointer;
+  transition:background 0.2s,border-color 0.2s,color 0.2s,transform 0.2s;
+}
+.surprise-close:hover{background:rgba(212,181,117,0.12);border-color:var(--gold-dim);color:var(--gold);transform:rotate(90deg)}
+.surprise-close svg{width:18px;height:18px}
+.surprise-eyebrow{
+  display:flex;align-items:center;justify-content:center;gap:0.5rem;
+  font-family:var(--font-display);
+  font-size:0.72rem;letter-spacing:0.18em;text-transform:uppercase;
+  color:var(--gold);opacity:0.85;
+  margin-bottom:0.85rem;
+  padding-top:0.1rem;
+}
+.surprise-dot{
+  width:6px;height:6px;border-radius:50%;
+  background:var(--gold);
+  box-shadow:0 0 10px var(--gold);
+  animation:surprise-pulse 1.6s ease-in-out infinite;
+}
+@keyframes surprise-pulse{0%,100%{opacity:0.6;transform:scale(1)}50%{opacity:1;transform:scale(1.35)}}
+@keyframes surprise-in{
+  from{opacity:0}
+  to{opacity:1}
+}
+.surprise-sheet{animation:surprise-sheet-in 0.4s cubic-bezier(.2,.8,.3,1.1)}
+@keyframes surprise-sheet-in{
+  from{opacity:0;transform:translateY(12px) scale(0.96)}
+  to{opacity:1;transform:translateY(0) scale(1)}
+}
+.surprise-again{
+  display:flex;align-items:center;justify-content:center;gap:0.55rem;
+  width:100%;
+  margin-top:1.2rem;
+  padding:0.85rem 1rem;
+  background:linear-gradient(135deg,rgba(212,181,117,0.18),rgba(212,181,117,0.06));
+  border:1px solid var(--gold-dim);
+  border-radius:12px;
+  color:var(--gold);
+  font-family:var(--font-display);font-weight:600;font-size:0.95rem;
+  cursor:pointer;
+  transition:background 0.2s,border-color 0.2s,transform 0.1s;
+}
+.surprise-again:hover{background:linear-gradient(135deg,rgba(212,181,117,0.3),rgba(212,181,117,0.12));border-color:var(--gold)}
+.surprise-again:active{transform:scale(0.98)}
+.surprise-again-icon{width:18px;height:18px;animation:spin 8s linear infinite}
+.surprise-image{
+  width:100%;height:220px;
+  border-radius:14px;
+  background:var(--zinc-900);
+  background-size:cover;background-position:center;
+  margin-bottom:1rem;
+  box-shadow:0 8px 28px rgba(0,0,0,0.5);
+}
+.surprise-meta{
+  display:flex;align-items:center;gap:0.6rem;
+  font-family:var(--font-display);font-size:0.72rem;font-weight:600;
+  text-transform:uppercase;letter-spacing:0.1em;
+  margin-bottom:0.4rem;
+  justify-content:center;
+}
+.surprise-name{
+  font-family:var(--font-display);
+  font-size:clamp(1.8rem,4.5vw,2.4rem);
+  font-weight:700;
+  color:var(--zinc-100);
+  text-align:center;
+  margin-bottom:0.35rem;
+  letter-spacing:-0.01em;
+}
+.surprise-desc{
+  font-size:0.95rem;
+  color:var(--zinc-400);
+  text-align:center;
+  margin-bottom:1.1rem;
+  line-height:1.55;
+  max-width:460px;
+  margin-inline:auto;
+}
+.surprise-section-title{
+  font-family:var(--font-display);
+  font-size:0.7rem;font-weight:600;
+  text-transform:uppercase;letter-spacing:0.18em;
+  color:var(--gold);opacity:0.85;
+  margin:1rem 0 0.5rem;
+  padding-bottom:0.4rem;
+  border-bottom:1px solid rgba(212,181,117,0.15);
+}
+.surprise-ings{
+  list-style:none;
+  margin:0;padding:0;
+}
+.surprise-ings li{
+  display:flex;justify-content:space-between;align-items:center;
+  padding:0.45rem 0;
+  border-bottom:1px dashed rgba(255,255,255,0.05);
+  font-size:0.9rem;color:var(--zinc-300);
+}
+.surprise-ings li:last-child{border-bottom:none}
+.surprise-ings .amt{color:var(--gold);font-weight:500;font-size:0.85rem}
+.surprise-steps{
+  list-style:none;counter-reset:sstep;
+  margin:0;padding:0;
+}
+.surprise-steps li{
+  counter-increment:sstep;
+  position:relative;
+  padding:0.55rem 2.2rem 0.55rem 0;
+  font-size:0.9rem;color:var(--zinc-400);line-height:1.55;
+}
+.surprise-steps li::before{
+  content:counter(sstep);
+  position:absolute;inset-inline-start:0;top:0.55rem;
+  width:1.5rem;height:1.5rem;border-radius:50%;
+  background:rgba(212,181,117,0.12);color:var(--gold);
+  display:flex;align-items:center;justify-content:center;
+  font-size:0.72rem;font-weight:600;font-family:var(--font-display);
+}
+body.surprise-open{overflow:hidden}
+
+@media(max-width:600px){
+  .surprise-modal{padding:0.75rem}
+  .surprise-sheet{padding:1rem 0.85rem 1.2rem}
+  .surprise-image{height:180px}
+}
+
 /* ── Back to Top ── */
 .back-to-top{
   position:fixed;bottom:2rem;left:2rem;
@@ -1243,9 +1399,12 @@ document.getElementById("sortSelect").addEventListener("change", (e) => {
   requestAnimationFrame(() => scrollToCocktailList());
 });
 
-// Surprise Me button
-document.getElementById("surpriseBtn").addEventListener("click", () => {
-  // Use currently-filtered list for relevance (respects filter + search)
+// ═══════════════════════════════════════
+//  SURPRISE ME — modal mode
+// ═══════════════════════════════════════
+
+function pickSurpriseCocktail() {
+  // Respects current filter + search so "surprise" stays relevant
   const pool = cocktails.filter(c => {
     const matchCat = activeFilter === "all" || c.category === activeFilter;
     const q = searchQuery.toLowerCase();
@@ -1255,25 +1414,75 @@ document.getElementById("surpriseBtn").addEventListener("click", () => {
       c.ingredients.some(i => i.item.toLowerCase().includes(q));
     return matchCat && matchSearch;
   });
-  if (pool.length === 0) return;
-  const pick = pool[Math.floor(Math.random() * pool.length)];
-  // Find the rendered card by matching its h3
-  setTimeout(() => {
-    const cards = Array.from(document.querySelectorAll(".cocktail-card"));
-    const target = cards.find(card => {
-      const nm = card.querySelector(".card-name");
-      return nm && nm.textContent === pick.name;
-    });
-    if (target) {
-      document.querySelectorAll(".cocktail-card.expanded").forEach(el => {
-        el.classList.remove("expanded");
-        el.setAttribute("aria-expanded", "false");
-      });
-      target.classList.add("expanded");
-      target.setAttribute("aria-expanded", "true");
-      target.scrollIntoView({ behavior: "smooth", block: "center" });
-    }
-  }, 50);
+  if (pool.length === 0) return null;
+  return pool[Math.floor(Math.random() * pool.length)];
+}
+
+function renderSurpriseContent(c) {
+  const catInfo = categories[c.category] || { name: c.category, color: "#D4B575" };
+  const diffLabel = c.difficulty === "easy" ? "קל" : c.difficulty === "medium" ? "בינוני" : "מאתגר";
+  const imgUrl = (typeof cocktailImages !== "undefined" && cocktailImages[c.name]) || "";
+  const imgStyle = imgUrl ? `background-image:linear-gradient(to top,rgba(0,0,0,0.55),transparent),url('${imgUrl}')` : "";
+  return `
+    <div class="surprise-image" style="${imgStyle}" role="img" aria-label="${c.name}"></div>
+    <div class="surprise-meta">
+      <span style="color:${catInfo.color};">${catInfo.name}</span>
+      <span style="color:var(--zinc-500);font-weight:400">·</span>
+      <span style="color:var(--zinc-400);font-weight:400">${diffLabel}</span>
+    </div>
+    <h2 id="surpriseTitle" class="surprise-name">${c.name}</h2>
+    <p class="surprise-desc">${c.desc}</p>
+    <div class="surprise-section-title">מרכיבים</div>
+    <ul class="surprise-ings">
+      ${c.ingredients.map(ig => `<li><span>${ig.item}</span><span class="amt">${ig.amount}</span></li>`).join("")}
+    </ul>
+    <div class="surprise-section-title">הכנה</div>
+    <ol class="surprise-steps">
+      ${c.steps.map(s => `<li>${s}</li>`).join("")}
+    </ol>
+  `;
+}
+
+function openSurprise() {
+  const pick = pickSurpriseCocktail();
+  if (!pick) return;
+  const modal = document.getElementById("surpriseModal");
+  const content = document.getElementById("surpriseContent");
+  content.innerHTML = renderSurpriseContent(pick);
+  modal.classList.add("open");
+  modal.setAttribute("aria-hidden", "false");
+  document.body.classList.add("surprise-open");
+  // Scroll the modal body to top in case a previous surprise was scrolled
+  const sheet = modal.querySelector(".surprise-sheet");
+  if (sheet) sheet.scrollTop = 0;
+  // Focus the close button for accessibility
+  setTimeout(() => modal.querySelector(".surprise-close")?.focus(), 50);
+}
+
+function closeSurprise() {
+  const modal = document.getElementById("surpriseModal");
+  modal.classList.remove("open");
+  modal.setAttribute("aria-hidden", "true");
+  document.body.classList.remove("surprise-open");
+}
+
+function rollSurprise() {
+  openSurprise();
+}
+
+// Click the button → open modal
+document.getElementById("surpriseBtn").addEventListener("click", openSurprise);
+
+// Close when clicking the backdrop
+document.getElementById("surpriseModal").addEventListener("click", (e) => {
+  if (e.target.dataset && e.target.dataset.close === "1") closeSurprise();
+});
+
+// Close with Escape key
+document.addEventListener("keydown", (e) => {
+  if (e.key === "Escape" && document.getElementById("surpriseModal").classList.contains("open")) {
+    closeSurprise();
+  }
 });
 
 // Reset-all used by empty-state button
@@ -1294,6 +1503,25 @@ function resetAllFilters() {
 // Initial render
 renderCocktails();
 </script>
+
+<!-- Surprise Me Modal -->
+<div id="surpriseModal" class="surprise-modal" role="dialog" aria-modal="true" aria-labelledby="surpriseTitle" aria-hidden="true">
+  <div class="surprise-backdrop" data-close="1"></div>
+  <div class="surprise-sheet">
+    <button type="button" class="surprise-close" aria-label="סגור" onclick="closeSurprise()">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
+    <div class="surprise-eyebrow" dir="rtl">
+      <span class="surprise-dot"></span>
+      <span>הקוקטייל שנבחר בשבילך</span>
+    </div>
+    <div id="surpriseContent" dir="rtl"></div>
+    <button type="button" class="surprise-again" onclick="rollSurprise()">
+      <svg class="surprise-again-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>
+      הפתע אותי שוב
+    </button>
+  </div>
+</div>
 
 <!-- Back to Top Button -->
 <button class="back-to-top" onclick="window.scrollTo({top:0,behavior:'smooth'})" aria-label="חזרה למעלה">↑</button>
