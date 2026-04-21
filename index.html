@@ -663,52 +663,56 @@ body{
 }
 .step-icon svg{width:100%;height:100%;display:block}
 
-/* Plays 2 iterations then freezes on last keyframe (animation-fill-mode: forwards).
-   Each .si-move group uses its own keyframe per action. */
+/* Animations run continuously ONLY while the parent .cocktail-card is
+   .expanded — otherwise paused. That way each card shows live motion
+   while the user is reading the recipe, and everything freezes when
+   collapsed (zero CPU cost for the 49 other cards). */
+
 @keyframes si-shake-kf{
-  0%,100%{transform:rotate(0)}
-  20%{transform:rotate(-16deg)}
-  50%{transform:rotate(16deg)}
-  80%{transform:rotate(-16deg)}
+  0%,100%{transform:rotate(0) translateX(0)}
+  15%{transform:rotate(-24deg) translateX(-2px)}
+  35%{transform:rotate(22deg) translateX(2px)}
+  55%{transform:rotate(-22deg) translateX(-2px)}
+  75%{transform:rotate(20deg) translateX(1px)}
 }
 @keyframes si-stir-kf{
   from{transform:rotate(0)}
   to{transform:rotate(360deg)}
 }
 @keyframes si-muddle-kf{
-  0%,100%{transform:translateY(0)}
-  50%{transform:translateY(6px)}
+  0%,100%{transform:translateY(-2px)}
+  50%{transform:translateY(8px)}
 }
 @keyframes si-pour-kf{
   0%,100%{transform:rotate(0)}
-  25%{transform:rotate(-55deg)}
-  75%{transform:rotate(-55deg)}
+  30%,70%{transform:rotate(-60deg)}
 }
 @keyframes si-drop-kf{
-  0%,10%{opacity:0;transform:translateY(0)}
+  0%,10%{opacity:0;transform:translateY(-4px)}
   25%{opacity:1;transform:translateY(0)}
-  65%{opacity:1;transform:translateY(10px)}
-  80%,100%{opacity:0;transform:translateY(10px)}
+  65%{opacity:1;transform:translateY(12px)}
+  80%,100%{opacity:0;transform:translateY(14px)}
 }
 @keyframes si-stream-kf{
-  0%,15%{opacity:0}
-  30%,70%{opacity:1}
-  85%,100%{opacity:0}
+  0%,15%{opacity:0;transform:scaleY(0.2);transform-origin:top}
+  35%,70%{opacity:1;transform:scaleY(1);transform-origin:top}
+  90%,100%{opacity:0;transform:scaleY(0.2);transform-origin:top}
 }
 
-.si-shake  .si-move{animation:si-shake-kf  1.2s ease-in-out 2 forwards;transform-origin:center}
-.si-stir   .si-move{animation:si-stir-kf   2.5s linear 2 forwards}
-.si-muddle .si-move{animation:si-muddle-kf 1.0s ease-in-out 2 forwards}
-.si-pour   .si-move{animation:si-pour-kf   2.4s ease-in-out 2 forwards}
-.si-strain .si-drop{animation:si-drop-kf   1.4s ease-in-out 2 forwards}
+/* All animations infinite, but PAUSED by default */
+.si-shake  .si-move{animation:si-shake-kf  0.8s ease-in-out infinite;transform-origin:center;animation-play-state:paused}
+.si-stir   .si-move{animation:si-stir-kf   1.8s linear infinite;animation-play-state:paused}
+.si-muddle .si-move{animation:si-muddle-kf 0.8s ease-in-out infinite;animation-play-state:paused}
+.si-pour   .si-move{animation:si-pour-kf   2.2s ease-in-out infinite;animation-play-state:paused}
+.si-strain .si-drop{animation:si-drop-kf   1.4s ease-in-out infinite;animation-play-state:paused}
 .si-strain .si-d2{animation-delay:0.2s}
 .si-strain .si-d3{animation-delay:0.4s}
-.si-pour   .si-stream{animation:si-stream-kf 2.4s ease-in-out 2 forwards}
+.si-pour   .si-stream{animation:si-stream-kf 2.2s ease-in-out infinite;animation-play-state:paused}
 
-/* On expanded card, restart animations by resetting the class */
+/* Play only while the containing card is expanded */
 .cocktail-card.expanded .si-move,
 .cocktail-card.expanded .si-drop,
-.cocktail-card.expanded .si-stream{animation-play-state:running}
+.cocktail-card.expanded .si-stream{animation-play-state:running !important}
 
 /* Respect reduced-motion preference — no motion at all */
 @media (prefers-reduced-motion: reduce){
@@ -1291,11 +1295,8 @@ function renderCocktails() {
         if (!wasExpanded) {
           card.classList.add("expanded");
           card.setAttribute('aria-expanded', 'true');
-          // Restart animations by reflowing the DOM (clone & replace icons)
-          card.querySelectorAll(".step-icon").forEach(icon => {
-            const fresh = icon.cloneNode(true);
-            icon.parentNode.replaceChild(fresh, icon);
-          });
+          // Step-icon animations automatically resume via CSS
+          // (.cocktail-card.expanded .si-move { animation-play-state: running })
           setTimeout(() => {
             card.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
           }, 350);
