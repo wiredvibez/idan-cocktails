@@ -773,22 +773,38 @@ button:active,[role="button"]:active{
   from{opacity:0;transform:translateY(12px) scale(0.96)}
   to{opacity:1;transform:translateY(0) scale(1)}
 }
-.surprise-again{
-  display:flex;align-items:center;justify-content:center;gap:0.55rem;
-  width:100%;
+.surprise-actions{
+  display:flex;flex-direction:row-reverse;gap:0.55rem;
   margin-top:1.2rem;
-  padding:0.85rem 1rem;
+}
+.surprise-btn{
+  flex:1;
+  display:flex;align-items:center;justify-content:center;gap:0.5rem;
+  padding:0.85rem 0.7rem;
+  border-radius:12px;
+  font-family:var(--font-display);font-weight:600;font-size:0.9rem;
+  cursor:pointer;
+  transition:background 0.2s,border-color 0.2s,transform 0.1s,color 0.2s;
+}
+.surprise-btn svg{width:18px;height:18px;flex-shrink:0}
+.surprise-btn:active{transform:scale(0.98)}
+.surprise-btn-again{
   background:linear-gradient(135deg,rgba(212,181,117,0.18),rgba(212,181,117,0.06));
   border:1px solid var(--gold-dim);
-  border-radius:12px;
   color:var(--gold);
-  font-family:var(--font-display);font-weight:600;font-size:0.95rem;
-  cursor:pointer;
-  transition:background 0.2s,border-color 0.2s,transform 0.1s;
 }
-.surprise-again:hover{background:linear-gradient(135deg,rgba(212,181,117,0.3),rgba(212,181,117,0.12));border-color:var(--gold)}
-.surprise-again:active{transform:scale(0.98)}
-.surprise-again-icon{width:18px;height:18px;animation:spin 8s linear infinite}
+.surprise-btn-again:hover{background:linear-gradient(135deg,rgba(212,181,117,0.3),rgba(212,181,117,0.12));border-color:var(--gold)}
+.surprise-btn-again .surprise-again-icon{animation:spin 8s linear infinite}
+.surprise-btn-radar{
+  background:rgba(255,255,255,0.03);
+  border:1px solid rgba(255,255,255,0.1);
+  color:var(--zinc-200);
+}
+.surprise-btn-radar:hover{background:rgba(212,181,117,0.08);border-color:var(--gold-dim);color:var(--gold)}
+.surprise-btn-radar.active{background:rgba(212,181,117,0.12);border-color:var(--gold);color:var(--gold)}
+
+/* Radar results inside the modal keep modal scrolling */
+.surprise-sheet .radar-results{margin-top:0.75rem}
 .surprise-image{
   width:100%;height:220px;
   border-radius:14px;
@@ -1443,12 +1459,21 @@ function renderSurpriseContent(c) {
   `;
 }
 
+// Currently-displayed surprise (so the radar button can grab its ingredients)
+let currentSurprise = null;
+
 function openSurprise() {
   const pick = pickSurpriseCocktail();
   if (!pick) return;
+  currentSurprise = pick;
   const modal = document.getElementById("surpriseModal");
   const content = document.getElementById("surpriseContent");
   content.innerHTML = renderSurpriseContent(pick);
+  // Reset any previous radar results
+  const oldRadar = modal.querySelector(".radar-results");
+  if (oldRadar) oldRadar.remove();
+  const radarBtn = modal.querySelector(".surprise-btn-radar");
+  if (radarBtn) radarBtn.classList.remove("active");
   modal.classList.add("open");
   modal.setAttribute("aria-hidden", "false");
   document.body.classList.add("surprise-open");
@@ -1464,10 +1489,20 @@ function closeSurprise() {
   modal.classList.remove("open");
   modal.setAttribute("aria-hidden", "true");
   document.body.classList.remove("surprise-open");
+  // Clean up radar results so next open is fresh
+  const oldRadar = modal.querySelector(".radar-results");
+  if (oldRadar) oldRadar.remove();
+  currentSurprise = null;
 }
 
 function rollSurprise() {
   openSurprise();
+}
+
+// Wire the radar button to the existing findNearbyStores() from js/radar.js
+function findSurpriseStores(btn) {
+  if (!currentSurprise || typeof findNearbyStores !== "function") return;
+  findNearbyStores(btn, currentSurprise.name, currentSurprise.ingredients);
 }
 
 // Click the button → open modal
@@ -1516,10 +1551,16 @@ renderCocktails();
       <span>הקוקטייל שנבחר בשבילך</span>
     </div>
     <div id="surpriseContent" dir="rtl"></div>
-    <button type="button" class="surprise-again" onclick="rollSurprise()">
-      <svg class="surprise-again-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>
-      הפתע אותי שוב
-    </button>
+    <div class="surprise-actions" dir="rtl">
+      <button type="button" class="surprise-btn surprise-btn-radar" onclick="findSurpriseStores(this)">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
+        <span>חנויות עם מחירים</span>
+      </button>
+      <button type="button" class="surprise-btn surprise-btn-again" onclick="rollSurprise()">
+        <svg class="surprise-again-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>
+        <span>הפתע אותי שוב</span>
+      </button>
+    </div>
   </div>
 </div>
 
