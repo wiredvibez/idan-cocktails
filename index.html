@@ -5,9 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Cocktails Wiki</title>
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
-<!-- Lottie-web (for animated prep step icons in expanded cards) -->
-<script defer src="https://cdnjs.cloudflare.com/ajax/libs/bodymovin/5.12.2/lottie_light.min.js"></script>
-<script defer src="js/lottie-steps.js"></script>
 <!-- NEW RELIC BROWSER AGENT -->
 <script type="text/javascript">
 ;window.NREUM||(NREUM={});NREUM.init={distributed_tracing:{enabled:true},performance:{capture_measures:true},browser_consent_mode:{enabled:false},privacy:{cookies_enabled:true},ajax:{deny_list:["bam.eu01.nr-data.net"],capture_payloads:'none'}};
@@ -655,16 +652,68 @@ body{
 }
 .sort-select option{background:var(--zinc-900);color:var(--zinc-100)}
 
-/* ── Lottie prep step icons ── */
+/* ── Animated prep step icons (inline SVG + CSS) ── */
 .step-icon{
-  display:inline-block;
-  width:34px;height:34px;
+  display:inline-flex;align-items:center;justify-content:center;
+  width:30px;height:30px;
   margin-inline-end:0.55rem;
-  vertical-align:-10px;
   flex-shrink:0;
+  color:var(--gold);
   line-height:0;
 }
 .step-icon svg{width:100%;height:100%;display:block}
+
+/* Plays 2 iterations then freezes on last keyframe (animation-fill-mode: forwards).
+   Each .si-move group uses its own keyframe per action. */
+@keyframes si-shake-kf{
+  0%,100%{transform:rotate(0)}
+  20%{transform:rotate(-16deg)}
+  50%{transform:rotate(16deg)}
+  80%{transform:rotate(-16deg)}
+}
+@keyframes si-stir-kf{
+  from{transform:rotate(0)}
+  to{transform:rotate(360deg)}
+}
+@keyframes si-muddle-kf{
+  0%,100%{transform:translateY(0)}
+  50%{transform:translateY(6px)}
+}
+@keyframes si-pour-kf{
+  0%,100%{transform:rotate(0)}
+  25%{transform:rotate(-55deg)}
+  75%{transform:rotate(-55deg)}
+}
+@keyframes si-drop-kf{
+  0%,10%{opacity:0;transform:translateY(0)}
+  25%{opacity:1;transform:translateY(0)}
+  65%{opacity:1;transform:translateY(10px)}
+  80%,100%{opacity:0;transform:translateY(10px)}
+}
+@keyframes si-stream-kf{
+  0%,15%{opacity:0}
+  30%,70%{opacity:1}
+  85%,100%{opacity:0}
+}
+
+.si-shake  .si-move{animation:si-shake-kf  1.2s ease-in-out 2 forwards;transform-origin:center}
+.si-stir   .si-move{animation:si-stir-kf   2.5s linear 2 forwards}
+.si-muddle .si-move{animation:si-muddle-kf 1.0s ease-in-out 2 forwards}
+.si-pour   .si-move{animation:si-pour-kf   2.4s ease-in-out 2 forwards}
+.si-strain .si-drop{animation:si-drop-kf   1.4s ease-in-out 2 forwards}
+.si-strain .si-d2{animation-delay:0.2s}
+.si-strain .si-d3{animation-delay:0.4s}
+.si-pour   .si-stream{animation:si-stream-kf 2.4s ease-in-out 2 forwards}
+
+/* On expanded card, restart animations by resetting the class */
+.cocktail-card.expanded .si-move,
+.cocktail-card.expanded .si-drop,
+.cocktail-card.expanded .si-stream{animation-play-state:running}
+
+/* Respect reduced-motion preference — no motion at all */
+@media (prefers-reduced-motion: reduce){
+  .si-move,.si-drop,.si-stream{animation:none !important}
+}
 
 /* ── No Results ── */
 .no-results{
@@ -1041,16 +1090,59 @@ function sortComparator(key) {
   }
 }
 
-// Prep step icons — detect Hebrew bartending verbs and return a Lottie kind
-// (shake/stir/muddle/strain/pour). Returns null if no verb matches.
-// The actual SVG is rendered at runtime by js/lottie-steps.js
+// Prep step icons — detect Hebrew bartending verbs and return an inline SVG
+// animated with CSS. Played 2 times on mount then frozen (animation-iteration-count).
+// prefers-reduced-motion: handled in CSS (animation: none).
 function stepIcon(stepText) {
   const t = stepText;
-  if (/\bנער\b|\bלנער\b|שייקר|שייק/.test(t))                  return { kind: "shake" };
-  if (/ערבב|לערבב|ערבוב|מערבבים|מערבל|להקציף/.test(t))          return { kind: "stir" };
-  if (/כתוש|כותש|מעיכ|מועכ|ללחוץ/.test(t))                     return { kind: "muddle" };
-  if (/סנן|מסננ|לסנן|לצקת דרך/.test(t))                          return { kind: "strain" };
-  if (/מוזג|יוצק|שופכ|מזלף|מוסיפ/.test(t))                     return { kind: "pour" };
+  const G = "var(--gold)";
+  // SHAKE — shaker silhouette
+  if (/\bנער\b|\bלנער\b|שייקר|שייק/.test(t)) return { kind: "shake", svg:
+    `<svg viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
+       <g class="si-move">
+         <rect x="14" y="5" width="12" height="6" rx="1.5" fill="${G}"/>
+         <rect x="12" y="12" width="16" height="22" rx="3" fill="${G}"/>
+       </g>
+     </svg>` };
+  // STIR — spoon rotating in a glass
+  if (/ערבב|לערבב|ערבוב|מערבבים|מערבל|להקציף/.test(t)) return { kind: "stir", svg:
+    `<svg viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
+       <circle cx="20" cy="22" r="14" fill="none" stroke="${G}" stroke-width="2" opacity="0.55"/>
+       <g class="si-move" style="transform-origin:20px 22px">
+         <rect x="19" y="8" width="2" height="18" rx="1" fill="${G}"/>
+         <ellipse cx="20" cy="28" rx="4" ry="3" fill="${G}"/>
+       </g>
+     </svg>` };
+  // MUDDLE — muddler moving up & down over a glass
+  if (/כתוש|כותש|מעיכ|מועכ|ללחוץ/.test(t)) return { kind: "muddle", svg:
+    `<svg viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
+       <rect x="9" y="26" width="22" height="10" rx="2" fill="none" stroke="${G}" stroke-width="2" opacity="0.6"/>
+       <g class="si-move">
+         <rect x="17" y="4" width="6" height="14" rx="2" fill="${G}"/>
+         <rect x="15" y="18" width="10" height="6" rx="1.5" fill="${G}"/>
+       </g>
+     </svg>` };
+  // STRAIN — strainer with falling drops
+  if (/סנן|מסננ|לסנן|לצקת דרך/.test(t)) return { kind: "strain", svg:
+    `<svg viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
+       <rect x="5" y="10" width="30" height="4" rx="1" fill="${G}"/>
+       <rect x="8" y="16" width="5" height="4" fill="${G}"/>
+       <rect x="17" y="16" width="5" height="4" fill="${G}"/>
+       <rect x="26" y="16" width="5" height="4" fill="${G}"/>
+       <ellipse class="si-drop si-d1" cx="14" cy="24" rx="2" ry="2.5" fill="${G}"/>
+       <ellipse class="si-drop si-d2" cx="22" cy="24" rx="2" ry="2.5" fill="${G}"/>
+       <ellipse class="si-drop si-d3" cx="28" cy="24" rx="2" ry="2.5" fill="${G}"/>
+     </svg>` };
+  // POUR — bottle tilting + stream
+  if (/מוזג|יוצק|שופכ|מזלף|מוסיפ/.test(t)) return { kind: "pour", svg:
+    `<svg viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
+       <g class="si-move" style="transform-origin:12px 16px">
+         <rect x="7"  y="3"  width="10" height="10" rx="1" fill="${G}"/>
+         <rect x="4"  y="13" width="16" height="18" rx="3" fill="${G}"/>
+       </g>
+       <rect x="26" y="22" width="12" height="12" rx="1.5" fill="none" stroke="${G}" stroke-width="2" opacity="0.6"/>
+       <rect class="si-stream" x="21" y="17" width="2" height="12" fill="${G}"/>
+     </svg>` };
   return null;
 }
 
@@ -1178,7 +1270,7 @@ function renderCocktails() {
             <ol class="recipe-steps" dir="rtl">
               ${c.steps.map(s => {
                 const ic = stepIcon(s);
-                const iconHtml = ic ? `<span class="step-icon" data-lottie="${ic.kind}" aria-hidden="true"></span>` : '';
+                const iconHtml = ic ? `<span class="step-icon si-${ic.kind}" aria-hidden="true">${ic.svg}</span>` : '';
                 return `<li>${iconHtml}<span>${s}</span></li>`;
               }).join("")}
             </ol>
@@ -1195,14 +1287,15 @@ function renderCocktails() {
         document.querySelectorAll(".cocktail-card.expanded").forEach(el => {
           el.classList.remove("expanded");
           el.setAttribute('aria-expanded', 'false');
-          // Pause Lottie animations in the card being collapsed
-          if (window.pauseLottieIn) window.pauseLottieIn(el);
         });
         if (!wasExpanded) {
           card.classList.add("expanded");
           card.setAttribute('aria-expanded', 'true');
-          // Replay Lottie animations from frame 0 on expand (capped at LOOP_LIMIT)
-          if (window.playLottieIn) window.playLottieIn(card);
+          // Restart animations by reflowing the DOM (clone & replace icons)
+          card.querySelectorAll(".step-icon").forEach(icon => {
+            const fresh = icon.cloneNode(true);
+            icon.parentNode.replaceChild(fresh, icon);
+          });
           setTimeout(() => {
             card.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
           }, 350);
@@ -1223,11 +1316,6 @@ function renderCocktails() {
   });
 
   observeCards();
-
-  // Mount Lottie animations on any new step icons this render added.
-  // Animations mount PAUSED at frame 0 — playLottieIn starts them when a
-  // card expands, pauseLottieIn stops them when it collapses.
-  if (window.initLottieSteps) window.initLottieSteps();
 }
 
 // ═══════════════════════════════════════
